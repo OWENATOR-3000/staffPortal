@@ -1,0 +1,112 @@
+body {
+    background-color: rgb(255, 255, 255);
+  }
+
+  .arrow{
+    width: 80%;
+    position: absolute;
+    margin-top: 360%;
+  }
+  .Admin-sidebar {
+    width: 5%;
+    height: 100vh;
+    position: fixed;
+    background-color: rgb(17, 17, 85);
+    transition: width 0.3s ease;
+    text-align: center;
+    overflow: hidden; /* Ensure content doesn't overflow when resized */
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center align items horizontally */
+    justify-content: space-between; /* Space out content evenly */
+  } 
+
+.Admin-sidebar a{
+  padding: 10px;
+  text-decoration: none;
+  color: white;
+  display: inline-block;
+  margin: 5px;
+}
+
+.Admin-sidebar a.active {
+  background-color: darkblue;
+  border-radius: 10px;
+  color: white;
+}
+  .Admin-sidebar:hover {
+    width: 17%;
+  }
+  .Admin-sidebar:hover .arrow{
+    opacity: 0;
+    transition: ease-in-out 0.1s;
+  
+  }
+  .Admin-sidebar:hover .profileimg {
+    margin-right: 0;
+    
+  }
+  .Admin-sidebar:hover ul {
+    padding-top: 5%; /* Adjust padding to center list items */
+  }
+  .Admin-sidebar ul {
+    text-align: center;
+    width: 100%;
+    color: white;
+    padding-top: 20%; /* Center the list items when not hovered */
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    flex: 1; /* Allow ul to grow and take available space */
+  }
+  .Admin-sidebar a {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 650;
+    padding: 5% 0;
+    width: 100%;
+    display: flex;
+    align-items: center; /* Center align items */
+    justify-content: center; /* Center align items */
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.5s ease-in-out;
+  }
+  .Admin-sidebar:hover .hrlogout{
+    opacity: 1;
+  }
+  .Admin-sidebar:hover a {
+    opacity: 1; /* Make visible on hover */
+  }
+  .Admin-sidebar a:hover {
+    color: white;
+    background-color: blue;
+    cursor: pointer;
+  }
+
+  .icons {
+    width: 20px; /* Set a fixed width for icons */
+    height: 20px; /* Set a fixed height for icons */
+    margin-right: 10px; /* Space between icon and text */
+  }
+
+  .Admin-sidebar .adminlogout {
+    width: 80%; /* Set a width for the button */
+    margin: 50px 0; /* Add some vertical margin */
+    padding: 10px; /* Add some padding */
+    background-color: rgb(255, 0, 0); /* Set a background color */
+    color: white; /* Set text color */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Add rounded corners */
+    cursor: pointer; /* Show a pointer cursor on hover */
+    font-family: Arial, Helvetica, sans-serif; /* Set font family */
+    font-weight: bold; /* Make text bold */
+    transition: background-color 0.3s; /* Smooth background color transition */
+    opacity: 0;
+    transition: ease-in-out 0.2s;
+  }
+  .adminlogout:hover{
+    background-color: brown;
+  }
+ 
+
+ 
+

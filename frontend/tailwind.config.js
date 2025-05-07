@@ -1,0 +1,11 @@
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx,html}",
+    "./src/styles/*.css",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};

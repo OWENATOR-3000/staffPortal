@@ -1,0 +1,58 @@
+.overtime-view-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .overtime-view-page h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .overtime-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .overtime-table th,
+  .overtime-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .overtime-table th {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .overtime-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .status {
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  
+  .status.approved {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .status.pending {
+    background-color: #ffc107;
+    color: black;
+  }
+  
+  .status.rejected {
+    background-color: #dc3545;
+    color: white;
+  }
+  

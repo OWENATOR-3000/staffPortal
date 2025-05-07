@@ -1,0 +1,49 @@
+/* Tailwind Component Classes for HomePage */
+@layer components {
+  .test-apply {
+      @apply text-red-500 font-bold;
+    }
+  .profile-card2 {
+    @apply relative left-1/2 top-1/2 -translate-x-1/2 w-[500px] rounded-[30px] p-5 text-center text-white;
+  }
+
+  .department-containers2 {
+    @apply mt-5 flex flex-wrap justify-center items-center min-h-[40vh];
+  }
+  
+  .department-container2 {
+    @apply bg-blue-500/20 border border-white/30 p-7 h-[100px] w-[350px] text-center rounded-[10px] m-5 shadow-md backdrop-blur-[10px] transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-lg hover:cursor-pointer;
+  }
+
+  .department-container2 h3 {
+    @apply text-white text-3xl;
+  }
+  
+  .popup-container2 {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-[10px] shadow-md z-[1000] w-[520px] h-[560px];
+  }
+  
+  .popup-content2 h2 {
+    @apply font-sans text-[1.7rem] font-bold mb-5;
+  }
+  
+  .popup-content2 ul {
+    @apply list-none p-0;
+  }
+  
+  .popup-content2 li {
+    @apply flex items-center font-sans text-[1.4rem] text-black mb-4;
+  }
+  
+  .popup-content2 li img {
+    @apply mr-4;
+  }
+  
+  .return-button2 {
+    @apply mt-5 py-2.5 px-5 bg-[#94caff] border-none text-white rounded hover:bg-[#72a9e2] cursor-pointer;
+  }
+  
+  .blur-background {
+    @apply blur-sm;
+  }
+}

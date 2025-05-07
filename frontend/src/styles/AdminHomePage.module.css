@@ -1,0 +1,115 @@
+.profile-card4 {
+    position: relative;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    border-radius: 30px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.department-containers {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    min-height: 40vh;
+}
+
+.department-container {
+    background: rgba(0, 123, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 27px;
+    height: 100px;
+    width: 350px;
+    text-align: center;
+    border-radius: 10px;
+    margin: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.department-container:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+.department-container h3 {
+    color: white;
+    font-size: 30px;
+}
+
+
+.popup-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 520px;
+    height: 560px;
+}
+
+.popup-content h2 {
+    font-family: Arial, sans-serif;
+    font-size: 1.7rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.popup-content ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.popup-content li {
+    display: flex;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    font-size: 1.4rem;
+    color: #000;
+    margin-bottom: 15px;
+}
+
+.popup-content li img {
+    margin-right: 15px;
+}
+
+.return-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #94caff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.return-button:hover {
+    background-color: #72a9e2;
+}
+
+.blur-background {
+    filter: blur(5px);
+}
+
+/*Registration form
+  .overtime-view-page {
+    background: rgba(141, 161, 182, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .form-group label {
+    display: block; 
+    margin-bottom: 5px; 
+  }
+    */

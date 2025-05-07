@@ -1,0 +1,210 @@
+.Employee-sidebar {
+  z-index: 99 !important;
+  font-size: 20px;
+  width: 5%;
+  height: calc(105vh - 8%);
+  position: fixed;
+  top: 8%;
+  background-color: rgb(17, 17, 85);
+  transition: width 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/*   .arrow{
+    width: 80%;
+    position: absolute;
+    margin-top: 360%;
+  }
+  .Employee-sidebar {
+    width: 5%;
+    height: 100vh;
+    position: fixed;
+    top: 11%; 
+    background-color: rgb(17, 17, 85);
+    transition: width 0.3s ease;
+    text-align: center;
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: space-between; 
+  } 
+  .Employee-sidebar:hover {
+    width: 17%;
+  }
+  .Employee-sidebar:hover .arrow{
+    opacity: 0;
+    transition: ease-in-out 0.1s;
+  
+  }
+  .Employee-sidebar:hover .profileimg {
+    margin-right: 0;
+    
+  }
+  .Employee-sidebar:hover ul {
+    padding-top: 5%; 
+  }
+  .Employee-sidebar ul {
+    text-align: center;
+    width: 100%;
+    color: white;
+    padding-top: 20%; 
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    flex: 1; 
+  }
+  .Employee-sidebar li {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 650;
+    padding: 5% 0;
+    width: 100%;
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    opacity: 0; 
+    transition: opacity 0.5s ease-in-out;
+  }
+  .Employee-sidebar:hover .hrlogout{
+    opacity: 1;
+  }
+  .Employee-sidebar:hover li {
+    opacity: 1; 
+  }
+  .Employee-sidebar li:hover {
+    background-color: rgb(52, 52, 241);
+    cursor: pointer;
+  }
+  .icons {
+    width: 20px; 
+    height: 20px; 
+    margin-right: 10px; 
+  }
+  .hrlogout {
+    width: 80%; 
+    padding: 10px; 
+    background-color: rgb(255, 0, 0); 
+    color: white; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-family: Arial, Helvetica, sans-serif; 
+    font-weight: bold; 
+    transition: background-color 0.3s; 
+    opacity: 0;
+    transition: ease-in-out 0.2s;
+  }
+  .hrlogout:hover{
+    background-color: brown;
+  }
+  .homecontent{
+    width: 100%;
+    height: 100%;
+    margin-top: 1%;
+    text-align: center;
+  }
+  .innercontent1{
+    width: 40%;
+    height: 550px;
+    margin-left: 8%;
+    margin-top: 2%;
+    box-shadow: 1px 1px 3px 2px #888888;
+    border-radius: 12px;
+  }
+  .innercontent1 h4{
+    padding-top: 30px;
+  } */
+/*main-content LeaveRequest*/
+.Employee-sidebar.expanded {
+  width: 20%; /* Expanded width when toggled */
+  z-index: 99 !important;
+}
+
+.Employee-sidebar ul {
+  text-align: center;
+  width: 80%;
+  color: white;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  padding-top: 10%;
+  overflow: scroll;
+
+}
+.Employee-sidebar ul::-webkit-scrollbar {
+  display: none;
+}
+.Employee-sidebar li {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 5% 0;
+  text-align: left; 
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  transition: background-color 0.3s;
+  opacity: 0; /* Initially hidden when collapsed */
+  transition: opacity 0.3s ease; /* Smooth transition */
+  pointer-events: none;
+}
+
+.Employee-sidebar.expanded li {
+  opacity: 1; /* Make visible when expanded */
+  pointer-events: auto;
+}
+
+ .Employee-sidebar li:hover {
+  cursor: pointer;
+} 
+.item.active li{
+  background-color: rgb(17, 17, 85);
+  color: #0357b1;
+}
+.Employee-sidebar a {
+  text-decoration: none;
+  color: white;
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.Employee-sidebar a:hover {
+  text-decoration: none;
+}
+
+.Employee-sidebar .hrlogout {
+  width: 80%;
+  height: 8%;
+  padding: 0.5rem;
+  background-color: rgb(255, 0, 0);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.Employee-sidebar.expanded .hrlogout {
+  opacity: 1; /* Make the logout button visible when expanded */
+}
+
+.Employee-sidebar .hrlogout:hover {
+  background-color: brown;
+}
+
+
+.disabled-links {
+  pointer-events: none; /* Disables clicking when sidebar is not expanded */
+}
+
+.disabled-button {
+  pointer-events: none; /* Disables the logout button when sidebar is not expanded */
+}

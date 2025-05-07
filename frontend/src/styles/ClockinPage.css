@@ -1,0 +1,329 @@
+/* Modern CSS redesign for ClockinPage */
+
+/* Main content container - keeping original background */
+.main-content {
+  min-height: 100vh;
+  padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Clock section container */
+#clocksection {
+  width: 90%;
+  max-width: 1200px;
+  margin: 6rem auto 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  min-height: 500px;
+}
+
+/* Today's Clock section - keeping original colors */
+#currentclockinsection {
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+#currentclockinsection:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#innercurrentclockin h4 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+#innercurrentclockin h4::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 50px;
+  height: 3px;
+  background-color: red;
+  border-radius: 3px;
+}
+
+/* Table styling */
+#innercurrentclockin table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+#innercurrentclockin th {
+  background-color: rgb(0, 4, 255);
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 15px;
+  letter-spacing: 0.5px;
+}
+
+#innercurrentclockin td {
+  padding: 15px;
+  border-bottom: 1px solid #eef0f5;
+  color: #555;
+  font-size: 1rem;
+}
+
+#innercurrentclockin tr:last-child td {
+  border-bottom: none;
+}
+
+#innercurrentclockin tr:hover td {
+  background-color: #f5f7fa;
+  transition: background-color 0.3s ease;
+}
+
+th, td {
+  text-align: center;
+}
+
+/* Button styling */
+.clockin-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  gap: 15px;
+}
+
+#currentclockinsection button {
+  background-color: red;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(255, 0, 0, 0.3);
+  width: auto;
+  min-width: 150px;
+}
+
+#currentclockinsection button:hover {
+  background-color: brown;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(165, 42, 42, 0.4);
+}
+
+#currentclockinsection button:active {
+  transform: translateY(0);
+}
+
+.clockin-actions button:nth-child(2) {
+  background-color: rgb(0, 4, 255);
+  box-shadow: 0 2px 10px rgba(0, 4, 255, 0.3);
+}
+
+.clockin-actions button:nth-child(2):hover {
+  background-color: rgb(0, 0, 180);
+  box-shadow: 0 4px 15px rgba(0, 0, 180, 0.4);
+}
+
+/* Total hours worked display */
+.total-hours {
+  background-color: #2ecc71;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  margin-top: 15px;
+  box-shadow: 0 2px 10px rgba(46, 204, 113, 0.3);
+}
+
+.total-hours strong {
+  font-size: 1.2rem;
+}
+
+/* Clock History section */
+#lastclockinsection {
+  background-color: rgb(233, 233, 233);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  width: 100%;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+}
+
+#lastclockinsection:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#lastclockinsection h4 {
+  color: white;
+  background-color: rgb(0, 4, 255);
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+  position: relative;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px 5px 0 0;
+}
+
+
+
+/* Date filter controls */
+#lastclockinsection > div:nth-child(2) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+#lastclockinsection input {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  font-size: 1rem;
+  outline: none;
+  width: auto;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+#lastclockinsection input:focus {
+  border-color: #3498db;
+  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.2);
+}
+
+#clockinclear {
+  background-color: rgb(0, 0, 219);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 219, 0.3);
+  width: auto;
+}
+
+#clockinclear:hover {
+  background-color: rgb(0, 0, 95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 95, 0.4);
+}
+
+#clockinclear:active {
+  transform: translateY(0);
+}
+
+/* Clock history table */
+#clockhistorydiv {
+  width: 100%;
+  height: 400px;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+#clockhistorydiv table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#clockhistorydiv th {
+  position: sticky;
+  top: 0;
+  background-color: rgb(0, 4, 255);
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 15px;
+  letter-spacing: 0.5px;
+}
+
+#clockhistorydiv td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eef0f5;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+#clockhistorydiv tr:last-child td {
+  border-bottom: none;
+}
+
+#clockhistorydiv tr:hover td {
+  background-color: #f5f7fa;
+  transition: background-color 0.3s ease;
+}
+
+/* Custom scrollbar */
+#clockhistorydiv::-webkit-scrollbar {
+  width: 6px;
+}
+
+#clockhistorydiv::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+#clockhistorydiv::-webkit-scrollbar-thumb {
+  background: rgb(0, 4, 255);
+  border-radius: 10px;
+}
+
+#clockhistorydiv::-webkit-scrollbar-thumb:hover {
+  background: rgb(0, 0, 180);
+}
+
+/* Responsive design */
+@media (min-width: 992px) {
+  #clocksection {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 25px;
+  }
+  
+  #currentclockinsection, #lastclockinsection {
+    width: 50%;
+    margin-top: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #innercurrentclockin {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #clockhistorydiv {
+    flex: 1;
+    min-height: 300px;
+    max-height: none;
+  }
+}
+
+/* Animation for new entries */
+@keyframes highlight {
+  0% { background-color: rgba(46, 204, 113, 0.2); }
+  100% { background-color: transparent; }
+}
+
+tr.new-entry {
+  animation: highlight 2s ease-out;
+}

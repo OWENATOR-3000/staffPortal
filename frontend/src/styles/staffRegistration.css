@@ -1,0 +1,89 @@
+.staffregistercontent{
+    width: 85%;
+    height: 54rem;
+    margin-top: 4rem;
+    border-radius: 10px;
+    background-color: rgb(255, 255, 255);
+    margin-right: auto;
+    margin-left: 7rem;
+    text-align: center;
+}
+.staffregistercontent h2{
+    padding-bottom: 1rem;
+}
+.formsection{
+    display: inline-flex;
+    width: 100%;
+    height: 100%;
+}
+.formsection label{
+    width: 30%;
+    margin: 1rem 0;
+    text-align: left;
+    margin-top: 1.8rem;
+}
+.formsection input{
+    width: 70%;
+    margin: 1.5rem 0;
+    border-radius: 10px;
+    border: 1px solid black;
+}
+.form-group{
+    display: flex;
+    margin: 1rem;
+}
+.registerform1{
+    width: 50%;
+    height: 100%;
+    padding: 1rem;
+    text-align: center;
+    justify-content: left;
+    border-radius: 10px;
+    margin: 0 1rem;
+    padding: 2rem 2rem;
+}
+.outerregisterform2{
+    height: 54rem;
+    width: 50%;
+    background-color: #060055;
+}
+.outerregisterform2 img{
+    margin-top: -17rem;
+    width: 50%;
+}
+.registerform2{
+    width: 100%;
+    height: 100%;
+    background-color: #060055;
+    color: white;
+    text-align: left;
+    border-radius: 10px;
+    margin: 0 1rem;
+    text-align: center;
+    padding: 2rem 2rem;
+}
+.registerform2 button{
+    width: 40%;
+    height: 5%;
+    border-radius: 10px;
+    font-size: 21px;
+    font-weight: bold;
+    background-color: rgb(0, 145, 202);
+    color: white;
+    border: none;
+}
+.registerform2 button:hover{
+   background-color: blue;
+}
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
