@@ -1,0 +1,91 @@
+/* components/dashboard/CalendarWidget.css - COMPACT VERSION */
+
+.react-calendar {
+  width: 100%;
+  border: none;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.react-calendar__navigation {
+  display: flex;
+  height: 36px; /* Smaller height */
+  margin-bottom: 0.5em;
+}
+
+.react-calendar__navigation button {
+  min-width: 36px;
+  background: none;
+  border: none;
+  font-size: 1rem; /* Smaller arrows */
+  cursor: pointer;
+  color: #6b7280;
+}
+.react-calendar__navigation button:hover {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+.react-calendar__navigation__label {
+  font-weight: bold;
+  font-size: 0.9rem; /* Smaller month/year text */
+  color: #1f2937;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.65em; /* Smaller day headers */
+  padding: 0.5em;
+  color: #4b5563;
+}
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+
+.react-calendar__tile {
+  max-width: 100%;
+  text-align: center;
+  padding: 0.5em 0.25em; /* Reduced padding */
+  background: none;
+  border: none;
+  font-size: 0.8rem; /* Smaller date numbers */
+  line-height: 1.5;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+}
+
+.react-calendar__tile:hover {
+  background-color: #e5e7eb;
+}
+.react-calendar__tile--active {
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+}
+.react-calendar__tile--active:hover {
+  background: #2563eb;
+}
+.react-calendar__tile--now {
+  background: none;
+  border: 1px solid #3b82f6;
+  color: #020508; /* Set to match the border or make it dark enough */
+  font-weight: bold;
+}
+
+.react-calendar__tile--now.react-calendar__tile--active {
+  background-color: #2563eb;
+  border: 2px solid #93c5fd;
+  color: white;
+}
+
+.react-calendar__tile--now:hover {
+  background: #eff6ff;
+}
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #d1d5db;
+}
+.weekend {
+    color: #ef4444;
+}
