@@ -12,14 +12,24 @@ async function ensureUploadDirExists() {
   try {
     // Check if the directory exists
     await stat(uploadDir);
-  } catch (error: any) {
-    // If it doesn't exist (ENOENT error), create it
-    if (error.code === 'ENOENT') {
-      console.log(`Upload directory not found. Creating it at: ${uploadDir}`);
-      await mkdir(uploadDir, { recursive: true }); // 'recursive: true' creates parent directories if needed
+  } catch (error) { // The 'error' parameter is of type 'unknown' by default
+    // This is a "type guard". We check if the error is a system error
+    // with a 'code' property before trying to access it.
+    if (error && typeof error === 'object' && 'code' in error) {
+      // Now TypeScript knows 'error' is an object with a 'code' property.
+      if (error.code === 'ENOENT') {
+        console.log(`Upload directory not found. Creating it at: ${uploadDir}`);
+        await mkdir(uploadDir, { recursive: true });
+      } else {
+        // Handle other potential system errors
+        console.error("Error checking upload directory:", error);
+        throw error; // Re-throw other errors
+      }
     } else {
-      console.error("Error checking upload directory:", error);
-      throw error; // Re-throw other errors
+      // The error was not an object or didn't have a 'code' property
+      // (e.g., if someone did `throw "a string"`).
+      console.error("An unexpected, non-system error occurred:", error);
+      throw error;
     }
   }
 }

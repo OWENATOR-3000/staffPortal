@@ -6,6 +6,27 @@ import { RequestWithDetails, StaffOption } from '@/app/(dashboard)/dashboard/req
 import { Download, Eye, X, Check } from 'lucide-react';
 import RequestPreviewModal from './RequestPreviewModal';
 
+// --- SHARED TYPE DEFINITIONS ---
+// Ideally, these would be in a shared file like 'types/requests.ts' and imported.
+interface LeaveDetails { supervisor_name: string; reason_type: string; reason_details?: string; start_date: string; end_date: string; number_of_hours: number; comments: string; }
+interface SalaryAdvanceDetails { amount_requested: string; requested_repayment_date: string; reason: string; }
+interface OvertimeDetails { overtime_date: string; hours_worked: string; reason: string; }
+interface ComplaintDetails { incident_date: string; incident_time: string; location: string; complaint_nature: 'Other' | string; complaint_nature_other?: string; description: string; desired_resolution: string; }
+interface LoanDetails { loan_type: string; amount_requested: string; reason: string; proposed_repayment_terms: string; employee_signature_name: string; }
+
+type RequestDetailsUnion = 
+    | { requestable_type: 'Leave', details: LeaveDetails }
+    | { requestable_type: 'Salary Advance', details: SalaryAdvanceDetails }
+    | { requestable_type: 'Overtime', details: OvertimeDetails }
+    | { requestable_type: 'Complaint', details: ComplaintDetails }
+    | { requestable_type: 'Loan', details: LoanDetails };
+    
+type FullRequestForModal = {
+    id: number; staff_name: string; staff_email: string; status: 'pending' | 'approved' | 'rejected';
+    created_at: string; reviewed_by?: string; reviewed_at?: string; rejection_reason?: string; reviewer_name?: string;
+} & RequestDetailsUnion;
+
+// --- COMPONENT PROPS & STYLES ---
 interface Props {
   initialRequests: RequestWithDetails[];
   staffList: StaffOption[];
@@ -24,7 +45,8 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
   const [selectedStaff, setSelectedStaff] = useState('all');
   const [selectedType, setSelectedType] = useState(initialFilterType || 'all');
   const [selectedStatus, setSelectedStatus] = useState('pending');
-  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+  // FIX: Use our new, specific type for the selected request state.
+  const [selectedRequest, setSelectedRequest] = useState<FullRequestForModal | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredRequests = useMemo(() => {
@@ -40,7 +62,8 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
     try {
       const res = await fetch(`/api/requests/${requestId}`);
       if (!res.ok) throw new Error('Failed to fetch request details.');
-      const data = await res.json();
+      // The data from the API should conform to our FullRequestForModal type
+      const data: FullRequestForModal = await res.json();
       setSelectedRequest(data);
       setIsModalOpen(true);
     } catch (error) { console.error(error); alert('Could not load request details.'); }
@@ -65,10 +88,10 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
         setRequests(currentRequests => currentRequests.map(r => r.id === requestId ? { ...r, status: 'rejected' } : r));
     } catch (error) { console.error(error); alert('Failed to deny request.'); }
   };
-
+  
+  // The rest of your JSX remains the same and will work correctly.
   return (
     <div>
-      {/* Filter Section */}
       <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border-b">
         <div>
           <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
@@ -95,7 +118,6 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
         </div>
       </div>
 
-      {/* Request List Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
@@ -114,7 +136,6 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
                 <td className="px-6 py-4 font-medium text-gray-900">{req.staff_name}</td>
                 <td className="px-6 py-4 text-gray-900">{req.requestable_type}</td>
                 
-                {/* --- THIS IS THE UPDATED DETAILS COLUMN --- */}
                 <td className="px-6 py-4 text-gray-600">
                   {req.requestable_type === 'Leave' && req.start_date && req.end_date && (
                     <span>{new Date(req.start_date).toLocaleDateString()} - {new Date(req.end_date).toLocaleDateString()}</span>
@@ -157,7 +178,6 @@ export default function ReviewRequestsList({ initialRequests, staffList, request
         {filteredRequests.length === 0 && <p className="p-8 text-center text-gray-500">No requests match the current filters.</p>}
       </div>
 
-      {/* Modal */}
       {isModalOpen && (<RequestPreviewModal request={selectedRequest} onClose={() => setIsModalOpen(false)} />)}
     </div>
   );

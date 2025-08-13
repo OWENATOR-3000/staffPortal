@@ -6,6 +6,24 @@ import { getSessionUser } from '@/lib/session';
 import { RowDataPacket } from 'mysql2';
 import { eachDayOfInterval, isWeekend } from 'date-fns';
 
+// Describes the shape of the staff salary/rate query result
+interface StaffRatePacket extends RowDataPacket {
+    hourly_rate: string; // Stored as DECIMAL/VARCHAR, parsed later
+    monthly_salary: string;
+}
+
+// Describes the shape of the attendance log query result
+interface AttendanceLogPacket extends RowDataPacket {
+    event_type: 'clock_in' | 'clock_out';
+    event_time: Date; // mysql2 converts DATETIME to JS Date objects
+}
+
+// Describes the shape of the overtime query result
+interface OvertimePacket extends RowDataPacket {
+    hours_worked: string; // Stored as DECIMAL/VARCHAR, parsed later
+    overtime_type: 'Normal' | 'Sunday';
+}
+
 // --- Helper Functions ---
 
 /**
@@ -60,7 +78,7 @@ function calculatePayableSecondsForDay(events: { clock_in_time: Date; clock_out_
  * Processes a raw, sorted event log into daily paired shifts.
  * @param logs Raw log from the database.
  */
-function pairAttendanceLogs(logs: { event_type: 'clock_in' | 'clock_out', event_time: Date }[]) {
+function pairAttendanceLogs(logs: AttendanceLogPacket[]) {
     const dailyShifts: { [key: string]: { clock_in_time: Date; clock_out_time: Date | null }[] } = {};
     for (let i = 0; i < logs.length; i++) {
         const currentEvent = logs[i];
@@ -95,18 +113,18 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const [staff] = await db.query<RowDataPacket[]>('SELECT hourly_rate, monthly_salary FROM staff WHERE id = ?', [staffId]);
+        const [staff] = await db.query<StaffRatePacket[]>('SELECT hourly_rate, monthly_salary FROM staff WHERE id = ?', [staffId]);
         if (staff.length === 0) { return NextResponse.json({ message: 'Staff not found' }, { status: 404 }); }
         
         const storedHourlyRate = parseFloat(staff[0].hourly_rate) || 0;
         const monthlySalary = parseFloat(staff[0].monthly_salary) || 0;
 
-        const [rawLogs] = await db.query<RowDataPacket[]>(
+        const [rawLogs] = await db.query<AttendanceLogPacket[]>(
             `SELECT event_type, event_time FROM attendance_log WHERE staff_id = ? AND DATE(event_time) BETWEEN ? AND ? ORDER BY event_time ASC`,
             [staffId, startDateStr, endDateStr]
         );
 
-        const dailyShifts = pairAttendanceLogs(rawLogs as any);
+        const dailyShifts = pairAttendanceLogs(rawLogs);
         let totalPayableSeconds = 0;
         for (const date in dailyShifts) {
             totalPayableSeconds += calculatePayableSecondsForDay(dailyShifts[date]);
@@ -132,7 +150,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Overtime should always use the stored base hourly rate for consistency.
-        const [overtimeRequests] = await db.query<RowDataPacket[]>(
+        const [overtimeRequests] = await db.query<OvertimePacket[]>(
             `SELECT ot.hours_worked, ot.overtime_type 
              FROM requests r 
              JOIN overtime_requests ot ON r.requestable_id = ot.id 

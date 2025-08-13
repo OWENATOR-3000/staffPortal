@@ -1,11 +1,11 @@
 // File: app/api/staff/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { RowDataPacket } from 'mysql2';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     // 1. Security Check: Ensure user is authenticated.
     // We can be lenient on the role here since many parts of the app might need this list.
     // If you want to restrict it to only admins/hr, add a role check.

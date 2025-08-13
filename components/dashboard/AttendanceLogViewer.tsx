@@ -30,7 +30,7 @@ interface DetailLog {
 }
 
 export default function AttendanceLogViewer({ staffList }: { staffList: StaffOption[] }) {
-    const [logs, setLogs] = useState<any[]>([]);
+    const [logs, setLogs] = useState<(SummaryLog | DetailLog)[]>([]);
     const [view, setView] = useState<ViewType>('summary');
     const [isLoading, setIsLoading] = useState(true);
     
@@ -184,11 +184,12 @@ export default function AttendanceLogViewer({ staffList }: { staffList: StaffOpt
                 )}
             </div>
 
-            {isModalOpen && selectedRecord && (
+            {isModalOpen && selectedRecord && selectedRecord.clock_out_id && selectedRecord.last_clock_out && (
                 <AdjustTimeModal
                     recordPair={{
                         staff_name: selectedRecord.full_name,
                         clock_in: { id: selectedRecord.clock_in_id, event_time: selectedRecord.first_clock_in },
+                        // Inside this block, TypeScript knows clock_out_id is a 'number' and last_clock_out is a 'string'.
                         clock_out: { id: selectedRecord.clock_out_id, event_time: selectedRecord.last_clock_out }
                     }}
                     onClose={handleCloseModal}

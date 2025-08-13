@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { RowDataPacket } from 'mysql2';
 import { Search } from 'lucide-react';
 import AdjustTimeModal from '@/components/dashboard/AdjustTimeModal';
 
@@ -44,8 +43,8 @@ export default function AdjustAttendancePage() {
                 if (!res.ok) throw new Error('Failed to fetch staff list.');
                 const data = await res.json();
                 setStaffList(data.staff);
-            } catch (err: any) {
-                setError('Could not load staff members.');
+            } catch (err: unknown) {
+                console.error("Failed to fetch staff list:", err);
             }
         }
         fetchStaff();
@@ -66,8 +65,8 @@ export default function AdjustAttendancePage() {
             if (!res.ok) throw new Error(await res.json().then(d => d.message));
             const data = await res.json();
             setShifts(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setIsLoading(false);
         }
@@ -152,10 +151,11 @@ export default function AdjustAttendancePage() {
                 </table>
             </div>
 
-            {isModalOpen && selectedShift && (
+                   {isModalOpen && selectedShift && selectedShift.staff_name && selectedShift.clock_out_id && selectedShift.clock_out_time && (
                 <AdjustTimeModal
                     recordPair={{
-                        staff_name: (selectedShift as any).staff_name,
+                        // Inside this block, TypeScript knows these values are not null or undefined.
+                        staff_name: selectedShift.staff_name,
                         clock_in: { id: selectedShift.clock_in_id, event_time: selectedShift.clock_in_time },
                         clock_out: { id: selectedShift.clock_out_id, event_time: selectedShift.clock_out_time }
                     }}

@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, FormEvent } from 'react';
-import { Key } from 'lucide-react';
+
+
 
 export default function ChangePasswordForm() {
     const [isLoading, setIsLoading] = useState(false);
@@ -34,12 +35,17 @@ export default function ChangePasswordForm() {
             });
             
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
+            if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
             
             setMessage(result.message);
-            (event.target as HTMLFormElement).reset(); // Clear form on success
-        } catch (err: any) {
-            setError(err.message);
+            (event.target as HTMLFormElement).reset();
+        } catch (err) { // FIX 2: Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unexpected error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -68,7 +74,7 @@ export default function ChangePasswordForm() {
                 {message && <p className="text-sm text-green-600">{message}</p>}
 
                 <div className="flex justify-end">
-                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-md">
+                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:bg-gray-400">
                         {isLoading ? 'Updating...' : 'Update Password'}
                     </button>
                 </div>

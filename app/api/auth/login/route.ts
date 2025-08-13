@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import db from '@/lib/db';
 import { comparePassword, createJwt } from '@/lib/auth';
+import { RowDataPacket } from 'mysql2';
+
+// Define an interface for the data structure returned by your 'login_user' procedure
+interface UserFromDb extends RowDataPacket {
+  id: number;
+  email: string;
+  password_hash: string;
+  full_name: string;
+  role_name: string;
+  last_event_type: 'clock_in' | 'clock_out' | null;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,8 +23,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔁 1. Call stored procedure to get user + last_event_type
-    const [results]: any[] = await db.query('CALL login_user(?)', [email]);
-    const users = results[0]; // CALL returns [ [rows], ... ]
+    const [userRows] = await db.query<[UserFromDb[]]>('CALL login_user(?)', [email]);
+    const users = userRows[0]; // CALL returns [ [rows], ... ]
 
     if (!users || users.length === 0) {
       return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });

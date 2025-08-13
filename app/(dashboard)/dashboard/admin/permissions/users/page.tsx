@@ -86,8 +86,8 @@ export default function UserPermissionsPage() {
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
             setMessage('User permissions updated successfully!');
-        } catch (err: any) {
-            setMessage(`Error: ${err.message}`);
+        } catch (err: unknown) {
+            setMessage(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
         } finally {
             setIsLoading(false);
         }

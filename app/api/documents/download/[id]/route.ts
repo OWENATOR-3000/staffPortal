@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { stat } from 'fs/promises';
-import path from 'path';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { RowDataPacket } from 'mysql2';
@@ -51,23 +50,25 @@ export async function GET(
     // 3. Check if the file actually exists on the filesystem
     try {
       await stat(doc.file_path);
-    } catch (error) {
+    } catch  {
       console.error('File not found on disk:', doc.file_path);
       return new NextResponse('File not found on server', { status: 404 });
     }
 
     // 4. Read the file from the filesystem
-    const fileBuffer = await readFile(doc.file_path);
+     const fileBuffer = await readFile(doc.file_path);
+
+     const arrayBuffer = new Uint8Array(fileBuffer).buffer;
 
     // 5. Create response headers to trigger a download
     const headers = new Headers();
     headers.append('Content-Disposition', `attachment; filename="${doc.file_name}"`);
     headers.append('Content-Type', doc.file_type);
 
-    return new NextResponse(fileBuffer, {
-      status: 200,
-      headers: headers,
-    });
+     return new NextResponse(new Blob([arrayBuffer]), {
+  status: 200,
+  headers: headers,
+});
 
   } catch (error) {
     console.error('Download error:', error);

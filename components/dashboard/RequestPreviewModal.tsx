@@ -2,20 +2,90 @@
 "use client";
 
 import { X } from 'lucide-react';
+import React from 'react'; // Import React for React.ReactNode
+
+// --- Type Definitions for the Request Data ---
+// These should ideally be in a shared types file (e.g., types/requests.ts)
+// so they can be used by both the API and the frontend components.
+
+interface LeaveDetails {
+    supervisor_name: string;
+    reason_type: string;
+    reason_details?: string;
+    start_date: string;
+    end_date: string;
+    number_of_hours: number;
+    comments: string;
+}
+
+interface SalaryAdvanceDetails {
+    amount_requested: string;
+    requested_repayment_date: string;
+    reason: string;
+}
+
+interface OvertimeDetails {
+    overtime_date: string;
+    hours_worked: string;
+    reason: string;
+}
+
+interface ComplaintDetails {
+    incident_date: string;
+    incident_time: string;
+    location: string;
+    complaint_nature: 'Other' | string;
+    complaint_nature_other?: string;
+    description: string;
+    desired_resolution: string;
+}
+
+interface LoanDetails {
+    loan_type: string;
+    amount_requested: string;
+    reason: string;
+    proposed_repayment_terms: string;
+    employee_signature_name: string;
+}
+
+// Discriminated union for the request details
+type RequestDetails = 
+    | { requestable_type: 'Leave', details: LeaveDetails }
+    | { requestable_type: 'Salary Advance', details: SalaryAdvanceDetails }
+    | { requestable_type: 'Overtime', details: OvertimeDetails }
+    | { requestable_type: 'Complaint', details: ComplaintDetails }
+    | { requestable_type: 'Loan', details: LoanDetails };
+
+// The main Request object type
+type FullRequest = {
+    id: number;
+    staff_name: string;
+    staff_email: string;
+    status: 'pending' | 'approved' | 'rejected';
+    created_at: string;
+    reviewed_by?: string;
+    reviewed_at?: string;
+    rejection_reason?: string;
+    reviewer_name?: string;
+} & RequestDetails;
 
 // A helper component for displaying a row of data
-const DetailRow = ({ label, value }: { label: string, value: any }) => (
+// FIX 1: 'value' is now typed as React.ReactNode to allow strings, numbers, or JSX elements
+const DetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
     <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
         <dt className="text-sm font-medium text-gray-500">{label}</dt>
         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{value || 'N/A'}</dd>
     </div>
 );
 
-export default function RequestPreviewModal({ request, onClose }: { request: any, onClose: () => void }) {
+// Main Modal Component
+// FIX 2: Use our new FullRequest type for the 'request' prop
+export default function RequestPreviewModal({ request, onClose }: { request: FullRequest | null, onClose: () => void }) {
     if (!request) return null;
 
     // --- RENDER FUNCTIONS FOR EACH TYPE ---
-    const renderLeaveDetails = (details: any) => (
+    // Each function now expects a specific, strongly-typed details object
+    const renderLeaveDetails = (details: LeaveDetails) => (
         <>
             <DetailRow label="Supervisor" value={details.supervisor_name} />
             <DetailRow label="Reason Type" value={details.reason_type} />
@@ -27,7 +97,7 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
         </>
     );
 
-    const renderSalaryAdvanceDetails = (details: any) => (
+    const renderSalaryAdvanceDetails = (details: SalaryAdvanceDetails) => (
         <>
             <DetailRow label="Amount Requested" value={`N$ ${parseFloat(details.amount_requested).toFixed(2)}`} />
             <DetailRow label="Requested Payout Date" value={new Date(details.requested_repayment_date).toLocaleDateString()} />
@@ -35,7 +105,7 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
         </>
     );
     
-    const renderOvertimeDetails = (details: any) => (
+    const renderOvertimeDetails = (details: OvertimeDetails) => (
         <>
             <DetailRow label="Date of Overtime" value={new Date(details.overtime_date).toLocaleDateString()} />
             <DetailRow label="Hours Worked" value={`${parseFloat(details.hours_worked).toFixed(2)} hours`} />
@@ -43,7 +113,7 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
         </>
     );
 
-    const renderComplaintDetails = (details: any) => (
+    const renderComplaintDetails = (details: ComplaintDetails) => (
         <>
             <DetailRow label="Date of Incident" value={new Date(details.incident_date).toLocaleDateString()} />
             <DetailRow label="Time of Incident" value={details.incident_time} />
@@ -56,9 +126,8 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
             <DetailRow label="Desired Resolution" value={<p className="whitespace-pre-wrap">{details.desired_resolution}</p>} />
         </>
     );
-
-    // --- THIS IS THE NEW FUNCTION YOU ARE ADDING ---
-    const renderLoanDetails = (details: any) => (
+    
+    const renderLoanDetails = (details: LoanDetails) => (
         <>
             <DetailRow label="Loan Type" value={details.loan_type} />
             <DetailRow label="Amount Requested" value={`N$ ${parseFloat(details.amount_requested).toFixed(2)}`} />
@@ -67,6 +136,18 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
             <DetailRow label="Signature" value={details.employee_signature_name} />
         </>
     );
+
+    // This function acts as a router to call the correct rendering function
+    const renderRequestSpecificDetails = () => {
+        switch (request.requestable_type) {
+            case 'Leave': return renderLeaveDetails(request.details);
+            case 'Salary Advance': return renderSalaryAdvanceDetails(request.details);
+            case 'Overtime': return renderOvertimeDetails(request.details);
+            case 'Complaint': return renderComplaintDetails(request.details);
+            case 'Loan': return renderLoanDetails(request.details);
+            default: return null;
+        }
+    };
 
 
     return (
@@ -86,18 +167,14 @@ export default function RequestPreviewModal({ request, onClose }: { request: any
                         <DetailRow label="Status" value={request.status} />
                         <DetailRow label="Submitted At" value={new Date(request.created_at).toLocaleString()} />
                         
-                        {/* --- THIS IS THE UPDATED CONDITIONAL RENDERING LOGIC --- */}
-                        {request.requestable_type === 'Leave' && renderLeaveDetails(request.details)}
-                        {request.requestable_type === 'Salary Advance' && renderSalaryAdvanceDetails(request.details)}
-                        {request.requestable_type === 'Overtime' && renderOvertimeDetails(request.details)}
-                        {request.requestable_type === 'Complaint' && renderComplaintDetails(request.details)}
-                        {request.requestable_type === 'Loan' && renderLoanDetails(request.details)}
+                        {/* Render the specific details using our router function */}
+                        {renderRequestSpecificDetails()}
                         
                         {/* Reviewer Details */}
                         {request.status !== 'pending' && (
                              <div className="pt-4 border-t mt-4">
                                 <DetailRow label="Reviewed By" value={request.reviewer_name} />
-                                <DetailRow label="Reviewed At" value={new Date(request.reviewed_at).toLocaleString()} />
+                                <DetailRow label="Reviewed At" value={new Date(request.reviewed_at!).toLocaleString()} />
                                 {request.status === 'rejected' && (<DetailRow label="Denial Reason" value={request.rejection_reason} />)}
                             </div>
                         )}

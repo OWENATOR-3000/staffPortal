@@ -46,11 +46,16 @@ export default function UploadForm({ documentTypes }: { documentTypes: string[] 
       setFile(null);
       router.refresh(); 
 
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsUploading(false);
-    }
+    } catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
+        } finally {
+            setIsUploading(false);
+        }
   };
 
   return (

@@ -23,8 +23,13 @@ export default function LoanRequestForm({ employeeName }: { employeeName: string
             alert(result.message);
             router.push('/dashboard'); 
             router.refresh();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }

@@ -12,13 +12,20 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
       await login(email, password);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) { // The 'err' parameter is of type 'unknown' by default
+      // This is a "type guard" to safely check the error type
+      if (err instanceof Error) {
+        // Now TypeScript knows 'err.message' is safe to access
+        setError(err.message);
+      } else {
+        // Handle cases where the thrown value isn't a standard Error
+        setError('An unexpected error occurred. Please try again.');
+      }
     }
   };
 

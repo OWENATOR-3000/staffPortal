@@ -6,7 +6,7 @@ export async function GET() {
     try {
         const [roles] = await db.query('SELECT id, name FROM roles ORDER BY name');
         return NextResponse.json({ roles });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }

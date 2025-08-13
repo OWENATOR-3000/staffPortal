@@ -9,94 +9,110 @@ import JSZip from 'jszip';
 import { RowDataPacket } from 'mysql2';
 import fontkit from '@pdf-lib/fontkit'; // This is now required again
 
-// Interface for the complete request data - UNCHANGED
-interface FullRequest extends RowDataPacket {
+// Define specific interfaces for each request type's details
+// Each one MUST extend RowDataPacket to be compatible with db.query
+interface LeaveDetails extends RowDataPacket {
+    start_date: string;
+    end_date: string;
+    reason_type: string;
+    reason_details?: string;
+    number_of_hours: number;
+    supervisor_name: string;
+    employee_signature_name: string;
+    comments: string;
+    document_id?: number;
+}
+
+interface SalaryAdvanceDetails extends RowDataPacket {
+    amount_requested: number;
+    requested_repayment_date: string;
+    reason: string;
+    supervisor_signature_date?: string;
+}
+
+interface ComplaintDetails extends RowDataPacket {
+    incident_date: string;
+    incident_time: string;
+    location: string;
+    complaint_nature: "Harassment" | "Unfair Treatment" | "Workplace Safety" | "Other";
+    complaint_nature_other?: string;
+    description: string;
+    desired_resolution: string;
+    acknowledgment: number;
+}
+
+interface OvertimeDetails extends RowDataPacket {
+    overtime_date: string;
+    overtime_type: "Normal" | "Sunday";
+    hours_worked: number;
+    reason: string;
+}
+
+interface LoanDetails extends RowDataPacket {
+    amount_requested: number;
+    loan_type: string;
+    proposed_repayment_terms: string;
+    reason: string;
+    employee_signature_name: string;
+}
+
+// Discriminated Union: This defines the possible structures for the request
+type RequestDetails = 
+    | { requestable_type: 'Leave', details: LeaveDetails }
+    | { requestable_type: 'Salary Advance', details: SalaryAdvanceDetails }
+    | { requestable_type: 'Complaint', details: ComplaintDetails }
+    | { requestable_type: 'Overtime', details: OvertimeDetails }
+    | { requestable_type: 'Loan', details: LoanDetails };
+    
+// The new, fully-typed FullRequest.
+type FullRequest = RowDataPacket & {
     id: number;
     staff_name: string;
     staff_department: string;
+    staff_contact_number: string;
     created_at: string;
-    requestable_type: string;
-    details: {
-        loan_type: string;
-        proposed_repayment_terms: string;
-        overtime_date: string;
-        overtime_type: "Normal (1.5x Rate)" | "Sunday (2.0x Rate)";
-        hours_worked(hours: any): number;
-        incident_date: string;
-        complaint_nature: "Harassment" | "Unfair Treatment" | "Workplace Safety" | "Other";
-        complaint_nature_other: string;
-        desired_resolution: string;
-        acknowledgment: number;
-        incident_time: string;
-        department: string;
-         staff_contact_number: string;
-        date_of_incident: string;
-        time_of_incident: string;
-        location: string;
-        nature_of_complaint: "Harassment" | "Unfair Treatment" | "Workplace Safety" | "Other";
-        description: string;
-        resolution: string;
-        is_acknowledged: number;
-        amount_requested: number;
-        requested_repayment_date: string;
-        amount: number;
-        payment_date: string;
-        reason: string;
-        supervisor_signature_date: string | undefined;
-        document_id?: number;
-        supervisor_name: string;
-        start_date: string;
-        end_date: string;
-        reason_type: string;
-        reason_details?: string;
-        number_of_hours: number;
-        comments: string;
-        employee_signature_name: string;
-    };
-}
+} & RequestDetails;
 
 // Fetches all necessary details for a request from the database - UNCHANGED
 async function getFullRequestDetails(requestId: string): Promise<FullRequest | null> {
-       const [requestData] = await db.query<RowDataPacket[]>(
-        `SELECT req.*, s.full_name as staff_name, s.email as staff_email, s.department as staff_department, s.primary_phone_number as staff_contact_number FROM requests req JOIN staff s ON req.staff_id = s.id WHERE req.id = ?`,
-        [requestId]
-    );
-    const request = requestData[0];
-    if (!request) return null;
+    const [requestData] = await db.query<RowDataPacket[]>(
+     `SELECT req.*, s.full_name as staff_name, s.email as staff_email, s.department as staff_department, s.primary_phone_number as staff_contact_number FROM requests req JOIN staff s ON req.staff_id = s.id WHERE req.id = ?`,
+     [requestId]
+ );
+ const baseRequest = requestData[0];
+ if (!baseRequest) return null;
 
-    let details: any = {};
-    if (request.requestable_type === 'Leave') {
-        const [leaveDetails] = await db.query<RowDataPacket[]>('SELECT * FROM leave_requests WHERE id = ?', [request.requestable_id]);
-        if (leaveDetails.length > 0) details = leaveDetails[0];
-    } 
-    // START NEW CODE
-    else if (request.requestable_type === 'Salary Advance') { 
-        // ASSUMPTION: Your salary advance details are in a table called 'salary_advance_requests'
-        const [advanceDetails] = await db.query<RowDataPacket[]>('SELECT * FROM salary_advance_requests WHERE id = ?', [request.requestable_id]);
-        if (advanceDetails.length > 0) details = advanceDetails[0];
-    }
+ const commonProps = {
+    id: baseRequest.id,
+    staff_name: baseRequest.staff_name,
+    staff_department: baseRequest.staff_department,
+    staff_contact_number: baseRequest.staff_contact_number,
+    created_at: baseRequest.created_at,
+ };
 
-        else if (request.requestable_type === 'Complaint') {
-        // ASSUMPTION: Your complaints table is named 'complaints'
-        const [complaintDetails] = await db.query<RowDataPacket[]>('SELECT * FROM complaints WHERE id = ?', [request.requestable_id]);
-        if (complaintDetails.length > 0) details = complaintDetails[0];
-    }
-
-    else if (request.requestable_type === 'Overtime') {
-    // ASSUMPTION: Your overtime table is named 'overtime_requests'
-    const [overtimeDetails] = await db.query<RowDataPacket[]>('SELECT * FROM overtime_requests WHERE id = ?', [request.requestable_id]);
-    if (overtimeDetails.length > 0) details = overtimeDetails[0];
-}
-
-else if (request.requestable_type === 'Loan') {
-    // ASSUMPTION: Your loan table is named 'loan_requests'
-    const [loanDetails] = await db.query<RowDataPacket[]>('SELECT * FROM loan_requests WHERE id = ?', [request.requestable_id]);
-    if (loanDetails.length > 0) details = loanDetails[0];
-}
-
-    // END NEW CODE
-
-    return { ...request, details } as FullRequest;
+ // Now, we use the specific interfaces which extend RowDataPacket
+ if (baseRequest.requestable_type === 'Leave') {
+     const [details] = await db.query<LeaveDetails[]>('SELECT * FROM leave_requests WHERE id = ?', [baseRequest.requestable_id]);
+     if (details[0]) return { ...commonProps, requestable_type: 'Leave', details: details[0] } as FullRequest;
+ } 
+ else if (baseRequest.requestable_type === 'Salary Advance') { 
+     const [details] = await db.query<SalaryAdvanceDetails[]>('SELECT * FROM salary_advance_requests WHERE id = ?', [baseRequest.requestable_id]);
+     if (details[0]) return { ...commonProps, requestable_type: 'Salary Advance', details: details[0] } as FullRequest;
+ }
+ else if (baseRequest.requestable_type === 'Complaint') {
+     const [details] = await db.query<ComplaintDetails[]>('SELECT * FROM complaints WHERE id = ?', [baseRequest.requestable_id]);
+     if (details[0]) return { ...commonProps, requestable_type: 'Complaint', details: details[0] } as FullRequest;
+ }
+ else if (baseRequest.requestable_type === 'Overtime') {
+    const [details] = await db.query<OvertimeDetails[]>('SELECT * FROM overtime_requests WHERE id = ?', [baseRequest.requestable_id]);
+    if (details[0]) return { ...commonProps, requestable_type: 'Overtime', details: details[0] } as FullRequest;
+ }
+ else if (baseRequest.requestable_type === 'Loan') {
+    const [details] = await db.query<LoanDetails[]>('SELECT * FROM loan_requests WHERE id = ?', [baseRequest.requestable_id]);
+    if (details[0]) return { ...commonProps, requestable_type: 'Loan', details: details[0] } as FullRequest;
+ }
+ 
+ return null; // Fallback if details aren't found
 }
 
 
@@ -136,7 +152,8 @@ async function generateStructuredLeaveFormPdf(requestData: FullRequest): Promise
             width: 130,
             height: 60,
         });
-    } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
         console.warn(`Could not load logo from ${logoPath}. Skipping logo.`);
     }
 
@@ -378,8 +395,12 @@ else if (requestData.requestable_type === 'Loan') {
         // END NEW CODE
         else {
             // This is now the final fallback for unsupported types
-            return new NextResponse(`Request type '${requestData.requestable_type}' is not supported for download.`, { status: 400 });
+             return assertNever(requestData);
         }
+        function assertNever(value: never): never {
+    throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
+}
+
     
 
         const zip = new JSZip();
@@ -391,19 +412,22 @@ else if (requestData.requestable_type === 'Loan') {
                 try {
                     const attachmentBytes = await readFile(docs[0].file_path);
                     zip.file(`Attachment_${docs[0].file_name}`, attachmentBytes);
-                } catch (e) {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                } catch (_e) {
                     console.warn(`Attachment file not found at path: ${docs[0].file_path}`);
                 }
             }
         }
         
      const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+     const arrayBuffer = new Uint8Array(zipBuffer).buffer;
         const headers = new Headers();
         const zipFileName = `Request_Package_${requestData.id}.zip`;
         headers.append('Content-Disposition', `attachment; filename="${zipFileName}"`);
         headers.append('Content-Type', 'application/zip');
         
-        return new NextResponse(zipBuffer, { status: 200, headers });
+        return new NextResponse(new Blob([arrayBuffer]), { status: 200, headers });
+
         
     } catch (error) {
         console.error('Download Package Error:', error);
@@ -428,7 +452,7 @@ export async function generateSalaryAdvancePdf(data: SalaryAdvanceRequestData): 
 
     const page = pdfDoc.addPage([595.27, 841.89]); // A4
     const { width, height } = page.getSize();
-    const black = rgb(0, 0, 0);
+   
 
     // --- Load and Embed Custom Fonts ---
     const fontPath = path.join(process.cwd(), 'lib/assets/DejaVuSans.ttf');
@@ -450,7 +474,8 @@ export async function generateSalaryAdvancePdf(data: SalaryAdvanceRequestData): 
             width: logoDims.width,
             height: logoDims.height,
         });
-    } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
         console.warn(`Could not load logo from ${logoPath}. Skipping logo.`);
     }
 
@@ -461,7 +486,7 @@ export async function generateSalaryAdvancePdf(data: SalaryAdvanceRequestData): 
         y: height - 160,
         font: customBoldFont,
         size: 22,
-        color: black,
+        
     });
     
     let y = height - 220;
@@ -871,7 +896,7 @@ export async function generateLoanRequestPdf(data: LoanRequestData): Promise<Uin
     const customFont = await pdfDoc.embedFont(fontBytes);
     const customBoldFont = await pdfDoc.embedFont(boldFontBytes);
 
-    const black = rgb(0, 0, 0);
+    
     const gray = rgb(0.3, 0.3, 0.3);
     const leftMargin = 55;
 

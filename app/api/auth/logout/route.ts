@@ -1,11 +1,17 @@
 // app/api/auth/logout/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'; // NextRequest is no longer needed
 import { cookies } from 'next/headers';
 import db from '@/lib/db';
 import { verifyJwt } from '@/lib/auth';
+import { RowDataPacket } from 'mysql2';
 
-export async function POST(req: NextRequest) {
+interface LastEventPacket extends RowDataPacket {
+  event_type: 'clock_in' | 'clock_out';
+}
+
+// FIXED: Removed the unused `_req: NextRequest` parameter
+export async function POST() {
   const token = (await cookies()).get('authToken')?.value;
   if (!token) {
     return NextResponse.json({ message: 'Not authenticated.' }, { status: 401 });
@@ -28,7 +34,7 @@ export async function POST(req: NextRequest) {
       ORDER BY event_time DESC 
       LIMIT 1
     `;
-    const [lastEvents]: any[] = await db.query(checkLastEventQuery, [userId]);
+     const [lastEvents] = await db.query<LastEventPacket[]>(checkLastEventQuery, [userId]);
     
     // You must have at least one event to clock out. And it must be a 'clock_in'.
     if (lastEvents.length === 0 || lastEvents[0].event_type === 'clock_out') {
@@ -40,14 +46,13 @@ export async function POST(req: NextRequest) {
     }
     // --- END OF NEW LOGIC ---
 
-
     // 1. Record the Clock-Out Event (Now safe to run)
     await db.query('INSERT INTO attendance_log (staff_id, event_type) VALUES (?, ?)', [userId, 'clock_out']);
 
     // 2. Clear the cookie
     (await
-          // 2. Clear the cookie
-          cookies()).delete('authToken');
+      // 2. Clear the cookie
+      cookies()).delete('authToken');
 
     return NextResponse.json({ message: 'Logout successful and clocked out.' });
   } catch (error) {

@@ -1,10 +1,10 @@
 // app/api/requests/my-requests/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { RowDataPacket } from 'mysql2';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     const session = await getSessionUser();
     if (!session) {
         return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });

@@ -9,15 +9,30 @@ const icons: { [key: string]: React.ElementType } = {
     Megaphone, Globe, Code, Paintbrush
 };
 
+// Define specific interfaces for your data structures
+interface Channel {
+    id: string;
+    name: string;
+    icon: string; // The key for the 'icons' map
+}
+
+interface Message {
+    id: string;
+    userId: string;
+    text: string;
+    timestamp: string;
+}
+
+// The new, fully-typed props interface
 interface ChatInterfaceProps {
-    channels: any[];
-    messages: any[];
-    activeChannel: any;
+    channels: Channel[];
+    messages: Message[];
+    activeChannel: Channel | null; // A channel can be null if none is selected
     newMessage: string;
     onChannelSelect: (channelId: string) => void;
     onNewMessageChange: (message: string) => void;
     onSendMessage: (e: React.FormEvent) => void;
-    headerActions?: React.ReactNode; // Optional prop for buttons like Maximize/Close
+    headerActions?: React.ReactNode;
 }
 
 export default function ChatInterface({
@@ -46,10 +61,10 @@ export default function ChatInterface({
                     {channels.map(channel => {
                         const Icon = icons[channel.icon];
                         return (
-                            <button key={channel.id} onClick={() => onChannelSelect(channel.id)} className={`w-full text-left flex items-center gap-3 p-3 text-sm font-medium transition-colors ${activeChannel.id === channel.id ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                {Icon && <Icon size={18} />}
-                                <span>{channel.name}</span>
-                            </button>
+                           <button key={channel.id} onClick={() => onChannelSelect(channel.id)} className={`w-full text-left flex items-center gap-3 p-3 text-sm font-medium transition-colors ${activeChannel?.id === channel.id ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:bg-gray-100'}`}>
+                               {Icon && <Icon size={18} />}
+                               <span>{channel.name}</span>
+                           </button>
                         );
                     })}
                 </nav>

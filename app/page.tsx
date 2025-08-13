@@ -94,7 +94,7 @@ export default function SplashScreen() {
                             WELCOME
                         </h1>
                         <p className="mt-2 text-xl font-light tracking-widest text-white/80">
-                            TO GMOBILITY'S STAFF PORTAL
+                            TO GMOBILITY&apos;S STAFF PORTAL
                         </p>
                         <div className="mt-10">
                             <LiveClock />

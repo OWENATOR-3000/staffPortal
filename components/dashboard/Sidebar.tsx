@@ -16,6 +16,10 @@ interface NavLink {
     notificationKey: string | null;
 }
 
+interface Notification {
+    link_url: string;
+}
+
 const ALL_NAV_LINKS: NavLink[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home, permission: null, notificationKey: null },
   { name: 'My Attendance', href: '/dashboard/my-attendance', icon: Clock, permission: 'view_own_attendance', notificationKey: null },
@@ -52,9 +56,9 @@ export default function Sidebar({ userPermissions, notificationCounts }: Sidebar
   const [localNotifCounts, setLocalNotifCounts] = useState(notificationCounts);
 
  // Helper function to process the raw notification list from the API
-  const processNotifications = (notifications: any[]): { [key: string]: number } => {
+  const processNotifications = (notifications: Notification[]): { [key: string]: number } => {
     const counts: { [key: string]: number } = {};
-    notifications.forEach((notif: any) => {
+    notifications.forEach((notif) => {
         if (notif.link_url === '/dashboard/requests/review') {
             counts['review_requests'] = (counts['review_requests'] || 0) + 1;
         } else if (notif.link_url === '/dashboard/my-requests') {

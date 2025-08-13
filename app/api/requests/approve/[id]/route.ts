@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { createNotificationForRequester } from '@/lib/auth';
+import { RowDataPacket } from 'mysql2';
+
+// Define an interface for the data returned by the SELECT query
+interface RequestInfoPacket extends RowDataPacket {
+  staff_id: number;
+  requestable_type: string;
+}
 
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -16,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     // 2. First, find out who submitted the request
-    const [requestResult] = await db.query<any[]>(
+    const [requestResult] = await db.query<RequestInfoPacket[]>(
         'SELECT staff_id, requestable_type FROM requests WHERE id = ?', [requestId]
     );
     if (requestResult.length === 0) {

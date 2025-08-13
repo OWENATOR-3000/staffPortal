@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { RowDataPacket } from 'mysql2';
-import { useRouter } from 'next/navigation';
+// FIX 1: 'useRouter' is not used, so it's removed from the import.
 import { PlusCircle, Trash2 } from 'lucide-react';
 
 // --- TYPE DEFINITIONS ---
@@ -11,6 +11,9 @@ interface StaffOption extends RowDataPacket {
     id: number; 
     full_name: string; 
 }
+
+// Define the type for the category state for better type safety
+type CommissionCategory = 'Software' | 'Hardware';
 
 interface LineItem {
     id: number;
@@ -31,16 +34,16 @@ const formatCurrency = (amount: number) => {
 
 // --- MAIN COMPONENT ---
 export default function CommissionCalculator({ staffList }: { staffList: StaffOption[] }) {
-    const [category, setCategory] = useState<'Software' | 'Hardware'>('Software');
+    const [category, setCategory] = useState<CommissionCategory>('Software');
     const [items, setItems] = useState<LineItem[]>([{ id: Date.now(), quantity: 1, itemName: '', description: '', purchasingPrice: 0, sellingPrice: 0 }]);
     const [hardwareRate, setHardwareRate] = useState(10);
     const [staffId, setStaffId] = useState<string>(staffList[0]?.id.toString() || '');
     const [notes, setNotes] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
-    const router = useRouter();
-
-    const handleItemChange = (id: number, field: keyof LineItem, value: any) => {
+    
+    // FIX 2: 'value' is now strongly typed
+    const handleItemChange = (id: number, field: keyof LineItem, value: string | number) => {
         setItems(currentItems =>
             currentItems.map(item =>
                 item.id === id ? { ...item, [field]: value } : item
@@ -91,12 +94,17 @@ export default function CommissionCalculator({ staffList }: { staffList: StaffOp
                 })
             });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
+            if (!response.ok) throw new Error(result.message || 'An unknown error occurred');
             setMessage(result.message);
             setItems([{ id: Date.now(), quantity: 1, itemName: '', description: '', purchasingPrice: 0, sellingPrice: 0 }]);
             setNotes('');
-        } catch (err: any) {
-            setMessage(`Error: ${err.message}`);
+        } catch (err) { // FIX 3: Removed ': any'
+            // Safely handle the error message
+            if (err instanceof Error) {
+                setMessage(`Error: ${err.message}`);
+            } else {
+                setMessage('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -104,15 +112,16 @@ export default function CommissionCalculator({ staffList }: { staffList: StaffOp
 
     return (
         <div className="space-y-6">
-            {/* Top Controls Section */}
             <div className="p-4 bg-gray-50 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label htmlFor="category-select" className="block text-sm font-medium text-gray-700">Commission Category</label>
-                    <select id="category-select" value={category} onChange={e => setCategory(e.target.value as any)} className="mt-1 w-full rounded-md border-gray-300 text-gray-900 shadow-sm">
+                    {/* FIX 4: Removed 'as any' and used the specific type */}
+                    <select id="category-select" value={category} onChange={e => setCategory(e.target.value as CommissionCategory)} className="mt-1 w-full rounded-md border-gray-300 text-gray-900 shadow-sm">
                         <option>Software</option>
                         <option>Hardware</option>
                     </select>
                 </div>
+                {/* ... rest of your JSX remains the same ... */}
                 <div>
                     <label htmlFor="staff-select" className="block text-sm font-medium text-gray-700">Assign to Staff</label>
                     <select id="staff-select" value={staffId} onChange={e => setStaffId(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 text-gray-900 shadow-sm">
@@ -127,7 +136,6 @@ export default function CommissionCalculator({ staffList }: { staffList: StaffOp
                 )}
             </div>
 
-            {/* Line Items Table Section */}
             <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                     <thead className="text-left text-gray-500">
@@ -162,13 +170,11 @@ export default function CommissionCalculator({ staffList }: { staffList: StaffOp
                  <button onClick={addRow} className="mt-2 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"><PlusCircle size={16}/> Add Item</button>
             </div>
             
-            {/* Notes Section */}
             <div>
                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Notes (Optional)</label>
                  <textarea name="notes" id="notes" rows={3} onChange={e => setNotes(e.target.value)} value={notes} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-gray-900"></textarea>
             </div>
 
-            {/* Summary & Save Section */}
             <div className="mt-6 p-4 bg-gray-100 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                  <div className="text-lg text-gray-900">Total Profit: <span className="font-bold">N$ {formatCurrency(calculations.totalProfit)}</span></div>
                  <div className="text-lg text-gray-900">Commission ({calculations.commissionRate * 100}%): <span className="font-bold text-green-600 text-xl">N$ {formatCurrency(calculations.commissionEarned)}</span></div>

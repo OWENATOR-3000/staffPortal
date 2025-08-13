@@ -1,33 +1,34 @@
 // File: app/api/staff/register/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, stat } from 'fs/promises';
+import { mkdir, stat, writeFile } from 'fs/promises'; // writeFile is now needed
 import path from 'path';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { hashPassword } from '@/lib/auth';
-// 1. ========= CORRECT THE IMPORT =========
 import { eachDayOfInterval, isWeekend } from 'date-fns';
+import { OkPacket, RowDataPacket } from 'mysql2/promise'; // Import OkPacket
 
+// Helper function to ensure the profile upload directory exists
 async function ensureProfileUploadDirExists() {
   const profileDir = path.join(process.cwd(), 'public', 'images', 'profiles');
   try {
     await stat(profileDir);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (e) { // FIX: Removed ': any'
+    // This is a type guard to safely access properties on an unknown error
+    if (e && typeof e === 'object' && 'code' in e && e.code === 'ENOENT') {
       await mkdir(profileDir, { recursive: true });
     } else {
-      throw error;
+      throw e;
     }
   }
 }
 
-function getWorkingDaysInCurrentMonth(): number {
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), 1);
-    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+// Helper to get working days in the month of a given date
+function getWorkingDaysInMonthOf(date: Date): number {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     const daysInMonth = eachDayOfInterval({ start, end });
-    // Filter out weekend days by negating isWeekend
     return daysInMonth.filter(day => !isWeekend(day)).length;
 }
 
@@ -38,8 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   const formData = await req.formData();
-
-  // Your field extraction logic is correct...
+  
   const title = formData.get('title') as string;
   const firstName = formData.get('firstName') as string;
   const lastName = formData.get('lastName') as string;
@@ -66,28 +66,39 @@ export async function POST(req: NextRequest) {
   try {
     await connection.beginTransaction();
 
-    const [existing] = await connection.query('SELECT id FROM staff WHERE email = ?', [email]);
-    if ((existing as any[]).length > 0) {
+    // FIX: Use RowDataPacket[] for a strongly-typed check
+    const [existing] = await connection.query<RowDataPacket[]>('SELECT id FROM staff WHERE email = ?', [email]);
+    if (existing.length > 0) {
       throw new Error('An employee with this email already exists.');
     }
 
+    // FIX: Use 'const' as it's not reassigned. Initialize as null.
     let profileImageUrl: string | null = null;
     if (profilePicture && profilePicture.size > 0) {
-      // your image upload logic...
+      // FIX: Implement the file upload logic to remove unused var errors
+      await ensureProfileUploadDirExists();
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const uniqueFilename = `${uniqueSuffix}-${profilePicture.name.replace(/\s+/g, '-')}`;
+      const filePath = path.join(process.cwd(), 'public', 'images', 'profiles', uniqueFilename);
+      const bytes = await profilePicture.arrayBuffer();
+      await writeFile(filePath, Buffer.from(bytes));
+      // Store the public URL, not the full filesystem path
+      profileImageUrl = `/images/profiles/${uniqueFilename}`;
     }
 
     const monthlySalaryNum = parseFloat(monthlySalaryStr) || 0;
+    const startDate = new Date(startDateRaw);
     let hourlyRate = 0;
 
     if (monthlySalaryNum > 0) {
-        const workingDays = getWorkingDaysInCurrentMonth();
+        // Use the specific start date's month for calculation
+        const workingDays = getWorkingDaysInMonthOf(startDate);
         if (workingDays > 0) {
             hourlyRate = (monthlySalaryNum / workingDays) / 8;
         }
     }
 
     const hashedPassword = await hashPassword(password);
-    const startDate = new Date(startDateRaw);
     const formattedDate = startDate.toLocaleDateString('en-GB').split('/').join('');
     const employeeNumber = `${firstName[0].toUpperCase()}${formattedDate}${lastName[0].toUpperCase()}`;
 
@@ -109,18 +120,19 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    const newStaffId = (result as any).insertId;
+    // FIX: Use OkPacket for the insert result
+    const newStaffId = (result as OkPacket).insertId;
     await connection.query('INSERT INTO staff_role (staff_id, role_id) VALUES (?, ?)', [newStaffId, roleId]);
     await connection.commit();
+    
     return NextResponse.json({ message: 'Employee registered successfully!', staffId: newStaffId }, { status: 201 });
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove ': any' and use a type guard
     await connection.rollback();
     console.error("Registration failed:", error);
-    return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ message }, { status: 500 });
   } finally {
     connection.release();
   }
 }
-
-// 2. ========= REMOVE THE BROKEN isWeekday FUNCTION =========

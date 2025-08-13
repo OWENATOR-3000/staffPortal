@@ -1,19 +1,26 @@
 // app/api/auth/me/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/session'; // We import our corrected function
+import { NextResponse } from 'next/server'; // NextRequest is no longer needed
+import { getSessionUser } from '@/lib/session';
 import db from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
 
-export async function GET(req: NextRequest) {
-  // Await getSessionUser() since it returns a Promise.
+// Define an interface for the user data returned by the specific query
+interface UserMeData extends RowDataPacket {
+  id: number;
+  full_name: string;
+  email: string;
+  role: string;
+}
+
+// FIXED: Removed the unused `_req: NextRequest` parameter
+export async function GET() {
   const session = await getSessionUser(); 
 
   if (!session) {
     return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
   }
 
-  // Because session is not a Promise, accessing session.userId is now valid!
-  // The TypeScript error is gone.
-  const [users]: any[] = await db.query(
+  const [users] = await db.query<UserMeData[]>(
     'SELECT id, full_name, email, (SELECT name FROM roles r JOIN staff_role sr ON r.id = sr.role_id WHERE sr.staff_id = s.id) as role FROM staff s WHERE id = ?',
     [session.userId]
   );

@@ -70,8 +70,8 @@ export default function PermissionsPage() {
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
             setMessage('Permissions updated successfully!');
-        } catch (err: any) {
-            setMessage(`Error: ${err.message}`);
+        } catch (err: unknown) {
+            setMessage(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
         } finally {
             setIsLoading(false);
         }

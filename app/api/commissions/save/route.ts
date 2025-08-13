@@ -3,6 +3,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { userHasPermission } from '@/lib/auth';
+import { OkPacket } from 'mysql2';
+
+
+// Interface for a single item in the commission
+interface CommissionItem {
+    quantity: number;
+    itemName: string;
+    description: string;
+    unitPrice: number;
+    sellingPrice: number;
+    purchasingPrice: number;
+    lineTotal: number;
+}
+
+// Interface for the entire request body for type safety
+interface CommissionRequestBody {
+    staffId: number;
+    category: string;
+    totalProfit: number;
+    commissionRate: number;
+    commissionEarned: number;
+    notes?: string;
+    items: CommissionItem[];
+}
 
 export async function POST(req: NextRequest) {
     const session = await getSessionUser();
@@ -15,7 +39,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json();
+    // Type the incoming request body
+    const body: CommissionRequestBody = await req.json();
     const { 
         staffId, category, totalProfit, commissionRate, 
         commissionEarned, notes, items 
@@ -36,7 +61,7 @@ export async function POST(req: NextRequest) {
              VALUES (?, ?, ?, ?, ?, ?)`,
             [staffId, category, totalProfit, commissionRate, commissionEarned, notes || null]
         );
-        const newRecordId = (recordResult as any).insertId;
+         const newRecordId = (recordResult as OkPacket).insertId;
 
         // 2. Prepare and insert all the line items
         const itemValues = items.map(item => [

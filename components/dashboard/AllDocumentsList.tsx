@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { DocumentWithUser, StaffOption } from '@/app/(dashboard)/dashboard/documents/all/page';
-import { Download, Paperclip, Search } from 'lucide-react';
+import { Download, Paperclip } from 'lucide-react';
 
 interface Props {
     initialDocuments: DocumentWithUser[];
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function AllDocumentsList({ initialDocuments, staffList, categories }: Props) {
-    const [documents, setDocuments] = useState(initialDocuments);
+    const [documents] = useState(initialDocuments);
     const [selectedStaff, setSelectedStaff] = useState('all');
     const [selectedCategory, setSelectedCategory] = useState('all');
     

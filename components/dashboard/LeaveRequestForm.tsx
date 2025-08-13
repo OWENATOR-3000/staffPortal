@@ -84,8 +84,13 @@ export default function LeaveRequestForm({ employeeName }: { employeeName: strin
             router.push('/dashboard'); 
             router.refresh();
 
-        } catch (err: any) {
-            setError(err.message);
+        }          catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -194,7 +199,7 @@ export default function LeaveRequestForm({ employeeName }: { employeeName: strin
 
             <div>
                 <label htmlFor="attachment" className="block text-sm font-medium text-gray-700">Attach Document (Optional)</label>
-                <p className="text-xs text-gray-500 mb-1">e.g., Doctor's note for sick leave.</p>
+                <p className="text-xs text-gray-500 mb-1">e.g., Doctor&apos;s note for sick leave.</p>
                 <input type="file" name="attachment" id="attachment" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
             </div>
 

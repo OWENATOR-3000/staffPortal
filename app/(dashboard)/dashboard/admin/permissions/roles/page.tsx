@@ -99,8 +99,8 @@ export default function RolePermissionsPage() {
             if (!response.ok) throw new Error(result.message || 'Unknown error occurred.');
             
             setMessage('Permissions updated successfully!');
-        } catch (err: any) {
-            setMessage(`Error: ${err.message}`);
+        } catch (err: unknown) {
+            setMessage(`Error: ${err instanceof Error ? err.message : 'An error occurred'}`);
         } finally {
             setIsLoading(false);
         }

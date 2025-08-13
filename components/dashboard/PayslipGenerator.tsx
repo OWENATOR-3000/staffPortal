@@ -3,6 +3,29 @@
 
 import { useState, useEffect } from 'react';
 
+// --- Type Definitions ---
+
+// Define the shape of each section
+interface PayslipSection {
+    [key: string]: number; // Allows for dynamic keys like 'basic', 'bonus', etc.
+}
+
+// The main interface for the entire payslip data structure
+interface PayslipData {
+    name: string;
+    surname: string;
+    ssc_code: string;
+    loanType: string;
+    earnings: PayslipSection;
+    deductions: PayslipSection;
+    summary: {
+        totalEarnings: number;
+        totalDeductions: number;
+        grossIncome: number;
+        netIncome: number;
+    };
+}
+
 // Reusable component for editable number fields
 const PayslipInput = ({ value, onUpdate }: { value: number; onUpdate: (newValue: number) => void; }) => (
     <input 
@@ -24,7 +47,8 @@ const ReadOnlyDisplay = ({ value }: { value: number }) => (
 export default function PayslipGenerator({ staffList }: { staffList: { id: number, full_name: string }[] }) {
     const [selectedStaffId, setSelectedStaffId] = useState<string>(staffList[0]?.id.toString() || '');
     const [payPeriodEnd, setPayPeriodEnd] = useState('');
-    const [payslipData, setPayslipData] = useState<any>(null);
+    // FIX 1: Use our specific PayslipData interface. It can be null initially.
+    const [payslipData, setPayslipData] = useState<PayslipData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [saveMessage, setSaveMessage] = useState('');
@@ -46,6 +70,7 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
                 const totalEarnings = Object.values<number>(data.earnings).reduce((a, b) => a + b, 0);
                 const totalDeductions = Object.values<number>(data.deductions).reduce((a, b) => a + b, 0);
                 
+                // The object being set now conforms to the PayslipData interface
                 setPayslipData({
                     ...data,
                     earnings: data.earnings,
@@ -56,8 +81,13 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
                         netIncome: totalEarnings - totalDeductions
                     }
                 });
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err) { // FIX 2: Removed ': any'
+                // Safely handle the error
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('An unknown error occurred while fetching data.');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -66,12 +96,25 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
     }, [selectedStaffId, payPeriodEnd]);
     
     const handleUpdate = (section: 'earnings' | 'deductions', key: string, value: number) => {
-        setPayslipData((prev: any) => {
+        // FIX 3: Type 'prev' as 'PayslipData | null'
+        setPayslipData((prev: PayslipData | null) => {
+            if (!prev) return null; // Guard against null state
+            
+            // Create a deep copy to avoid direct state mutation
             const newData = JSON.parse(JSON.stringify(prev));
+            
             newData[section][key] = value;
+            
             const totalEarnings = Object.values<number>(newData.earnings).reduce((sum, val) => sum + val, 0);
             const totalDeductions = Object.values<number>(newData.deductions).reduce((sum, val) => sum + val, 0);
-            newData.summary = { totalEarnings, totalDeductions, grossIncome: totalEarnings, netIncome: totalEarnings - totalDeductions };
+            
+            newData.summary = { 
+                totalEarnings, 
+                totalDeductions, 
+                grossIncome: totalEarnings, 
+                netIncome: totalEarnings - totalDeductions 
+            };
+            
             return newData;
         });
     };
@@ -88,19 +131,25 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
                     staffId: selectedStaffId,
                     payPeriodStart, payPeriodEnd,
                     totalPay: payslipData.summary.netIncome,
-                    // Pass other relevant data for history...
                 })
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
             setSaveMessage(result.message);
-        } catch (err: any) {
-            setSaveMessage(`Error: ${err.message}`);
+        } catch (err) { // FIX 4: Removed ': any'
+            // Safely handle the error
+            if (err instanceof Error) {
+                setSaveMessage(`Error: ${err.message}`);
+            } else {
+                setSaveMessage('An unknown error occurred during save.');
+            }
         }
     };
 
     const formatCurrency = (amount: number) => `N$ ${amount.toFixed(2)}`;
 
+    // The rest of your JSX remains the same and will work correctly
+    // with the new typed 'payslipData' state.
     return (
         <div className="space-y-6">
             <div className="p-4 bg-gray-50 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
@@ -162,7 +211,6 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
                         <div className="col-span-3 bg-white p-1 border-l"></div>
                         <div className="col-span-4 bg-white p-1 border-l"><PayslipInput value={payslipData.deductions.advance} onUpdate={(v) => handleUpdate('deductions', 'advance', v)} /></div>
 
-                        {/* --- THIS IS THE NEW LOAN ROW --- */}
                         <div className="col-span-5 bg-white p-1 flex items-center space-x-2">
                             <span className="text-gray-700">Loans</span>
                             <input type="text" readOnly value={payslipData.loanType} className="flex-grow p-1 text-xs bg-gray-100 rounded-md border-gray-300 text-gray-600"/>
@@ -170,14 +218,12 @@ export default function PayslipGenerator({ staffList }: { staffList: { id: numbe
                         <div className="col-span-3 bg-white p-1 border-l"></div>
                         <div className="col-span-4 bg-white p-1 border-l"><PayslipInput value={payslipData.deductions.loan} onUpdate={(v) => handleUpdate('deductions', 'loan', v)} /></div>
 
-                          {/* --- THIS IS THE NEW, CORRECTED SSC ROW --- */}
                        <div className="col-span-5 bg-white p-1 flex items-center space-x-2">
                             <span className="text-gray-700">SSC</span>
                             <input type="text" readOnly value={payslipData.ssc_code} className="flex-grow p-1 text-xs bg-gray-100 rounded-md border-gray-300 text-gray-600"/>
                         </div>
                         <div className="col-span-3 bg-white p-1 border-l"></div>
                         <div className="col-span-4 bg-white p-1 border-l">
-                            {/* This cell remains empty as SSC is not a deduction amount */}
                         </div>
                         <div className="col-span-5 bg-white p-2 text-gray-700">Income Tax</div>
                         <div className="col-span-3 bg-white p-1 border-l"></div>

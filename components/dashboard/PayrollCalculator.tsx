@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { RowDataPacket } from 'mysql2';
 
 interface StaffMember extends RowDataPacket { id: number; full_name: string; hourly_rate: string; }
@@ -36,7 +35,7 @@ export default function PayrollCalculator({ staffList }: { staffList: StaffMembe
     // State to hold the full result object from the API
     const [payrollResult, setPayrollResult] = useState<PayrollResult | null>(null);
     
-    const router = useRouter();
+    
 
     const handleCalculatePay = async () => {
         if (!selectedStaffId || !startDate || !endDate) {
@@ -55,8 +54,13 @@ export default function PayrollCalculator({ staffList }: { staffList: StaffMembe
             }
             const data = await response.json();
             setPayrollResult(data);
-        } catch (err: any) {
-            setError(err.message);
+                } catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }

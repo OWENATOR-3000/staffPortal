@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'a-very-strong-secret-for-developme
 
 // Define the shape of our token payload
 export interface JwtPayload {
-  user: any;
+  user?: Record<string, unknown>; // 'user' is now an optional object
   userId: number;
   role: string;
 }
@@ -29,7 +29,7 @@ export const createJwt = (payload: JwtPayload): string => {
 export const verifyJwt = (token: string): JwtPayload | null => {
   try {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
-  } catch (error) {
+  } catch { // The unused 'error' variable has been removed
     return null;
   }
 };

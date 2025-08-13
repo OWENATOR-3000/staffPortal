@@ -41,8 +41,8 @@ export default function MyRequestsPage() {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || 'Failed to fetch requests.');
                 setRequests(data.requests);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
             } finally {
                 setIsLoading(false);
             }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import React from 'react'; // Import React for React.FormEvent
 
 // Helper to format dates for the datetime-local input
 const toDatetimeLocal = (isoString: string) => {
@@ -11,7 +12,30 @@ const toDatetimeLocal = (isoString: string) => {
     return date.toISOString().slice(0, 16);
 };
 
-export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recordPair: any, onClose: () => void, onSave: () => void }) {
+// --- Define specific interfaces for our props ---
+
+// Describes the structure of a single clock-in or clock-out event
+interface AttendanceEvent {
+    id: number;
+    event_time: string; // ISO string format
+}
+
+// Describes the main data object for a single record
+interface RecordPair {
+    staff_name: string;
+    clock_in: AttendanceEvent;
+    clock_out: AttendanceEvent;
+}
+
+// Describes the full set of props for the component
+interface AdjustTimeModalProps {
+    recordPair: RecordPair | null; // Can be a RecordPair or null
+    onClose: () => void;
+    onSave: () => void;
+}
+
+// Apply the new interface to the component's props
+export default function AdjustTimeModal({ recordPair, onClose, onSave }: AdjustTimeModalProps) {
     const [newClockIn, setNewClockIn] = useState('');
     const [newClockOut, setNewClockOut] = useState('');
     const [reason, setReason] = useState('');
@@ -20,6 +44,7 @@ export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recor
 
     useEffect(() => {
         if (recordPair) {
+            // Accessing properties is now fully type-safe
             setNewClockIn(toDatetimeLocal(recordPair.clock_in.event_time));
             setNewClockOut(toDatetimeLocal(recordPair.clock_out.event_time));
         }
@@ -29,6 +54,14 @@ export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recor
         e.preventDefault();
         setIsLoading(true);
         setError('');
+        
+        // Ensure recordPair exists before proceeding (type safety)
+        if (!recordPair) {
+            setError('No record data available.');
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch('/api/attendance/adjust', {
                 method: 'POST',
@@ -41,11 +74,22 @@ export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recor
                     reason,
                 }),
             });
-            if (!res.ok) throw new Error(await res.text());
+            
+            if (!res.ok) {
+                // Try to get a meaningful error message from the response
+                const errorText = await res.text();
+                throw new Error(errorText || 'Failed to save changes.');
+            }
+
             onSave();
             onClose();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) { // FIX 2: Removed ': any'
+            // Safely get the error message
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -54,7 +98,6 @@ export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recor
     if (!recordPair) return null;
 
     return (
-        // The modal's JSX structure can remain mostly the same
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
             <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
@@ -62,7 +105,6 @@ export default function AdjustTimeModal({ recordPair, onClose, onSave }: { recor
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200"><X size={20} /></button>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    {/* Form fields are the same */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                        <div>
                             <label className="block text-sm font-medium text-gray-700">Clock In</label>

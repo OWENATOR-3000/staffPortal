@@ -1,6 +1,18 @@
+// app/api/staff/delete/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
+import { RowDataPacket } from 'mysql2/promise';
+
+// Define an interface for the full staff member data
+interface StaffDataPacket extends RowDataPacket {
+  full_name: string;
+  email: string;
+  job_title: string;
+  department: string;
+  profile_image_url: string;
+  created_at: Date; // Or string, depending on your DB setup
+}
 
 export async function POST(req: NextRequest) {
   const session = await getSessionUser();
@@ -9,19 +21,25 @@ export async function POST(req: NextRequest) {
   }
 
   const { staffId } = await req.json();
+  if (!staffId) {
+    return NextResponse.json({ message: 'staffId is required' }, { status: 400 });
+  }
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Get user data before deletion
-    const [rows] = await connection.query(
+    // Use our specific interface for the query result
+    const [rows] = await connection.query<StaffDataPacket[]>(
       'SELECT * FROM staff WHERE id = ?',
       [staffId]
     );
-    const user = (rows as any)[0];
+
+    const user = rows[0]; // No 'any' cast needed
     if (!user) {
-      throw new Error('Staff not found');
+      // It's better to rollback and return a 404 if the user isn't found
+      await connection.rollback();
+      return NextResponse.json({ message: 'Staff not found' }, { status: 404 });
     }
 
     // Archive into staff_history
@@ -47,10 +65,14 @@ export async function POST(req: NextRequest) {
 
     await connection.commit();
     return NextResponse.json({ message: 'Staff deleted and archived.' }, { status: 200 });
-  } catch (error: any) {
+
+  } catch (error) { // FIX 2: Removed ': any'
     await connection.rollback();
     console.error('Deletion error:', error);
-    return NextResponse.json({ message: error.message || 'Failed to delete staff' }, { status: 500 });
+    // This is a safe way to get a message from an 'unknown' error
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete staff';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
+
   } finally {
     connection.release();
   }

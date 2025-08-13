@@ -7,8 +7,9 @@ import { redirect } from "next/navigation";
 import { RowDataPacket } from "mysql2";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { Metadata } from "next";
 
-// --- 1. DEFINE THE UPDATED TYPES ---
+// --- 1. DEFINE THE TYPES (These were already perfect) ---
 interface Staff extends RowDataPacket {
     id: number;
     title: string | null;
@@ -35,8 +36,26 @@ interface Role extends RowDataPacket {
     name: string;
 }
 
+// Define the props for the page component for better readability
+interface EditStaffPageProps {
+  params: {
+    id: string;
+  };
+}
 
-// --- 2. UPDATE THE DATA FETCHING FUNCTION ---
+export async function generateMetadata({ params }: EditStaffPageProps): Promise<Metadata> {
+  // You can now use params.id to fetch data for the title, etc.
+  const staff = await getStaffDetails(params.id); // Assuming getStaffDetails exists
+
+  const title = staff ? `Edit ${staff.first_name} ${staff.last_name}` : 'Staff Not Found';
+
+  return {
+    title: title,
+    description: `Edit the profile for staff member ID ${params.id}`,
+  };
+}
+
+// --- 2. DATA FETCHING FUNCTIONS (These were already perfect) ---
 async function getStaffDetails(staffId: string): Promise<Staff | null> {
     const [staff] = await db.query<RowDataPacket[]>(
         `SELECT 
@@ -60,19 +79,19 @@ async function getRoles(): Promise<Role[]> {
 }
 
 
-// --- MAIN PAGE COMPONENT ---
-export default async function EditStaffPage({ params }: { params: { id: string } }) {
-    await params;
+// --- MAIN PAGE COMPONENT (FIXED) ---
+export default async function EditStaffPage({ params }: EditStaffPageProps) {
+    // await params; // <-- THIS LINE WAS REMOVED. It was causing the build error.
+
     const session = await getSessionUser();
     if (!session) redirect('/login');
 
     // Fetch data concurrently for better performance
-  const [staffDetails, roles] = await Promise.all([
-    getStaffDetails(params.id),
-    getRoles()
-  ]);
+    const [staffDetails, roles] = await Promise.all([
+        getStaffDetails(params.id),
+        getRoles()
+    ]);
 
-  
     if (!staffDetails) {
         return <div className="p-8 text-center text-gray-500">Staff member not found.</div>;
     }
@@ -82,9 +101,9 @@ export default async function EditStaffPage({ params }: { params: { id: string }
     return (
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <Link href="/dashboard/staff" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Staff Management
-                </Link>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Staff Management
+            </Link>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-800">Edit Employee Profile</h1>
                 <p className="text-gray-600">Update the details for {fullName}.</p>

@@ -4,8 +4,15 @@ import { redirect } from "next/navigation";
 import Link from 'next/link';
 import { Calculator, Coins, History, FileText } from 'lucide-react'; // Import icons
 
+interface FeatureCardProps {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
+
 // A helper component for the navigation cards
-const FeatureCard = ({ href, icon: Icon, title, description }: any) => (
+const FeatureCard = ({ href, icon: Icon, title, description }: FeatureCardProps) => (
   <Link href={href} className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:scale-105 transition-transform duration-200">
     <div className="flex items-center">
       <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">

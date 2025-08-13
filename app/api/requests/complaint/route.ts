@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { createNotificationForApprovers } from '@/lib/auth';
-import { RowDataPacket } from 'mysql2/promise';
+import { OkPacket, RowDataPacket } from 'mysql2/promise';
+
+// Define an interface for the user name query result for better type safety
+interface UserFullNamePacket extends RowDataPacket {
+    full_name: string;
+}
 
 export async function POST(req: NextRequest) {
     const session = await getSessionUser();
@@ -13,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch user's name for the notification message
     // Add this near the top of each POST function
-const [userResult] = await db.query<RowDataPacket[]>('SELECT full_name FROM staff WHERE id = ?', [session.userId]);
+const [userResult] = await db.query<UserFullNamePacket[]>('SELECT full_name FROM staff WHERE id = ?', [session.userId]);
 const userName = userResult[0]?.full_name || 'An employee';
 
     const formData = await req.formData();
@@ -40,7 +45,7 @@ const userName = userResult[0]?.full_name || 'An employee';
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [incidentDate, incidentTime || null, location || null, complaintNature, complaintNature === 'Other' ? complaintNatureOther : null, description, desiredResolution || null, true]
         );
-        const newComplaintId = (complaintResult as any).insertId;
+        const newComplaintId = (complaintResult as OkPacket).insertId;
 
         // 2. Insert master request into the `requests` table
         await connection.query(
@@ -58,7 +63,7 @@ const userName = userResult[0]?.full_name || 'An employee';
 );
         return NextResponse.json({ message: 'Complaint submitted successfully. HR will review it shortly.' }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error) {
         await connection.rollback();
         console.error("Complaint submission failed:", error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

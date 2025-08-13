@@ -16,7 +16,7 @@ const icons: { [key: string]: React.ElementType } = {
 // --- Main Chat Widget Component ---
 export default function ChatWidget() {
     // NEW: State to control if the widget is open or minimized
-    const [isWidgetOpen, setIsWidgetOpen] = useState(true);
+    const [isWidgetOpen, setIsWidgetOpen] = useState(false);
 
     const [activeChannelId, setActiveChannelId] = useState('2'); // Default to 'General' channel
     const [newMessage, setNewMessage] = useState('');

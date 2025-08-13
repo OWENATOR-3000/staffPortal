@@ -1,14 +1,15 @@
 // File: app/api/staff/edit/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
 import db from '@/lib/db';
 import { getSessionUser } from '@/lib/session';
 import { hashPassword } from '@/lib/auth';
 import { eachDayOfInterval, isWeekend } from 'date-fns';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket } from 'mysql2/promise'; // Use from mysql2/promise
 
+// Note: Unused 'writeFile' and 'path' imports have been removed.
+
+// Helper function to calculate working days in a month
 function getWorkingDaysInMonth(date: Date): number {
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
     const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -16,17 +17,21 @@ function getWorkingDaysInMonth(date: Date): number {
     return daysInMonth.filter(day => !isWeekend(day)).length;
 }
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
-    // --- FIX FOR THE 'params should be awaited' WARNING ---
-    await context;
-    // ------------------------------------------------------
+// Interfaces for our specific database queries
+interface StaffStartDatePacket extends RowDataPacket {
+    start_date: Date | string;
+}
+interface StaffNamePacket extends RowDataPacket {
+    first_name: string;
+    last_name: string;
+}
 
+export async function POST(req: NextRequest, { params: { id: staffId } }: { params: { id: string } }) {
     const session = await getSessionUser();
     if (!session) {
         return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
     }
 
-    const { id: staffId } = context.params;
     if (!staffId) {
         return NextResponse.json({ message: 'Staff ID is missing.' }, { status: 400 });
     }
@@ -37,22 +42,20 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     try {
         await connection.beginTransaction();
         
-        // --- FIX FOR THE "NOTHING HAPPENS" BUG ---
-        // Get the start date from the form. If it's empty, fetch the existing one from the DB.
         let startDate = formData.get('startDate') as string;
         if (!startDate) {
-            const [staff] = await connection.query<RowDataPacket[]>('SELECT start_date FROM staff WHERE id = ?', [staffId]);
+            const [staff] = await connection.query<StaffStartDatePacket[]>('SELECT start_date FROM staff WHERE id = ?', [staffId]);
             if (staff.length > 0 && staff[0].start_date) {
-                // Ensure it's in YYYY-MM-DD format
                 startDate = new Date(staff[0].start_date).toISOString().slice(0, 10);
             }
         }
-        // -------------------------------------------
-
+        
+        // FIX: The params array is now strongly typed
         const updateFields: string[] = [];
-        const params: any[] = [];
+        const params: (string | number | null)[] = [];
 
-        const addField = (field: string, value: any) => {
+        // FIX: The 'value' parameter is now strongly typed
+        const addField = (field: string, value: string | number | null | undefined) => {
             if (value !== null && value !== undefined && value !== '') {
                 updateFields.push(`${field} = ?`);
                 params.push(value);
@@ -61,35 +64,36 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
 
         const firstName = formData.get('firstName') as string;
         const lastName = formData.get('lastName') as string;
-        addField('title', formData.get('title'));
+        addField('title', formData.get('title') as string);
         addField('first_name', firstName);
         addField('last_name', lastName);
+
         if (firstName && lastName) {
             addField('full_name', `${firstName} ${lastName}`);
         } else if (firstName) {
-             const [currentLastName] = await connection.query<RowDataPacket[]>('SELECT last_name FROM staff WHERE id = ?', [staffId]);
-             addField('full_name', `${firstName} ${currentLastName[0].last_name}`);
+             const [staffName] = await connection.query<StaffNamePacket[]>('SELECT last_name FROM staff WHERE id = ?', [staffId]);
+             if (staffName[0]) addField('full_name', `${firstName} ${staffName[0].last_name}`);
         } else if (lastName) {
-             const [currentFirstName] = await connection.query<RowDataPacket[]>('SELECT first_name FROM staff WHERE id = ?', [staffId]);
-             addField('full_name', `${currentFirstName[0].first_name} ${lastName}`);
+             const [staffName] = await connection.query<StaffNamePacket[]>('SELECT first_name FROM staff WHERE id = ?', [staffId]);
+             if (staffName[0]) addField('full_name', `${staffName[0].first_name} ${lastName}`);
         }
 
-        addField('email', formData.get('email'));
-        addField('primary_phone_number', formData.get('primaryPhoneNumber'));
-        addField('secondary_phone_number', formData.get('secondaryPhoneNumber'));
-        addField('emergency_phone_number', formData.get('emergencyPhoneNumber'));
-        addField('postal_address', formData.get('postalAddress'));
-        addField('social_security_code', formData.get('ssn'));
-        addField('id_number', formData.get('idNumber'));
-        addField('job_title', formData.get('jobTitle'));
-        addField('department', formData.get('department'));
-        addField('start_date', startDate); // Use the (potentially fetched) startDate
+        addField('email', formData.get('email') as string);
+        addField('primary_phone_number', formData.get('primaryPhoneNumber') as string);
+        addField('secondary_phone_number', formData.get('secondaryPhoneNumber') as string);
+        addField('emergency_phone_number', formData.get('emergencyPhoneNumber') as string);
+        addField('postal_address', formData.get('postalAddress') as string);
+        addField('social_security_code', formData.get('ssn') as string);
+        addField('id_number', formData.get('idNumber') as string);
+        addField('job_title', formData.get('jobTitle') as string);
+        addField('department', formData.get('department') as string);
+        addField('start_date', startDate);
 
         const monthlySalaryStr = formData.get('monthlySalary') as string;
         if (monthlySalaryStr) {
             const monthlySalaryNum = parseFloat(monthlySalaryStr) || 0;
             let hourlyRate = 0;
-            if (monthlySalaryNum > 0 && startDate) { // This check will now pass
+            if (monthlySalaryNum > 0 && startDate) {
                 const workingDays = getWorkingDaysInMonth(new Date(startDate));
                 if (workingDays > 0) {
                     hourlyRate = (monthlySalaryNum / workingDays) / 8;
@@ -107,7 +111,8 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
 
         const profilePicture = formData.get('profilePicture') as File | null;
         if (profilePicture && profilePicture.size > 0) {
-            // ... your file upload logic ...
+            // Your file upload logic would go here. Since it's commented out in the
+            // original, I'm leaving it out for now to satisfy the "unused imports" rule.
         }
 
         if (updateFields.length > 0) {
@@ -126,10 +131,12 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
         
         return NextResponse.json({ message: 'Employee updated successfully!' }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error) { // FIX: Removed ': any'
         await connection.rollback();
         console.error("Staff update failed:", error);
-        return NextResponse.json({ message: error.message || 'An internal server error occurred.' }, { status: 500 });
+        // Safely get the error message
+        const message = error instanceof Error ? error.message : 'An internal server error occurred.';
+        return NextResponse.json({ message }, { status: 500 });
     } finally {
         connection.release();
     }

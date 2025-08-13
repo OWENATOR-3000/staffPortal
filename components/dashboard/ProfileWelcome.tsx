@@ -22,7 +22,7 @@ export default function ProfileWelcome({ userName, profileImageUrl }: Props) {
         Welcome back, {userName}!
       </h2>
       <p className="mt-1 text-gray-500">
-        Here's your dashboard at a glance.
+        Here&apos;s your dashboard at a glance.
       </p>
     </div>
   );

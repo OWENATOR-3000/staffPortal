@@ -16,7 +16,13 @@ const validatePasswordRules = (password: string) => ({
   symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
 });
 
-
+// Define an interface for the component's props.
+// It extends the standard HTML input attributes to allow passing props like `type`, `placeholder`, `onChange`, etc.
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+}
 // --- Reusable Helper Functions & Data ---
 
 // Fetches roles from the API for the dropdown
@@ -40,7 +46,7 @@ const titles = ['Mr', 'Ms', 'Mrs', 'Dr'];
 // --- Reusable UI Components ---
 
 // Reusable styled input component for consistency across the form
-const FormInput = ({ id, label, icon: Icon, ...props }: any) => (
+const FormInput = ({ id, label, icon: Icon, ...props }: FormInputProps) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">{label}</label>
         <div className="mt-1 relative">
@@ -113,11 +119,16 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     if (!response.ok) throw new Error(result.message || 'Failed to register.');
     router.push('/dashboard/staff');
     router.refresh();
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
-    setIsLoading(false);
-  }
+  } catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
 };
 
 

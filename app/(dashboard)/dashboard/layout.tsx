@@ -1,4 +1,4 @@
-// app/dashboard/layout.tsx
+// app/(dashboard)/dashboard/layout.tsx
 import { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -8,11 +8,23 @@ import { verifyJwt } from '@/lib/auth';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
+// Interface for user data
 interface DbUser extends RowDataPacket {
   id: number;
   full_name: string;
   email: string;
   profile_image_url: string | null;
+}
+
+// NEW: Interface for permission data
+interface PermissionPacket extends RowDataPacket {
+  name: string;
+}
+
+// NEW: Interface for notification count data
+interface NotificationPacket extends RowDataPacket {
+  link_url: string;
+  count: number;
 }
 
 async function getLayoutData() {
@@ -31,10 +43,12 @@ async function getLayoutData() {
     EXISTS (SELECT 1 FROM staff_role sr JOIN role_permission rp ON sr.role_id = rp.role_id WHERE sr.staff_id = ? AND rp.permission_id = p.id) OR 
     EXISTS (SELECT 1 FROM user_permission up WHERE up.staff_id = ? AND up.permission_id = p.id);
   `;
-  const [permissions] = await db.query<RowDataPacket[]>(permissionsQuery, [dbUser.id, dbUser.id]);
+  // UPDATED: Use the specific PermissionPacket interface
+  const [permissions] = await db.query<PermissionPacket[]>(permissionsQuery, [dbUser.id, dbUser.id]);
 
   // --- THIS IS THE CRITICAL NOTIFICATION LOGIC ---
-  const [notifResults] = await db.query<RowDataPacket[]>(
+  // UPDATED: Use the specific NotificationPacket interface
+  const [notifResults] = await db.query<NotificationPacket[]>(
       `SELECT link_url, COUNT(id) as count 
        FROM notifications 
        WHERE recipient_staff_id = ? AND is_read = FALSE 
@@ -43,15 +57,13 @@ async function getLayoutData() {
   );
   
   const notificationCounts: { [key: string]: number } = {};
-  if (notifResults.length > 0) {
-      for (const row of notifResults) {
-          if (row.link_url === '/dashboard/requests/review') {
-              notificationCounts['review_requests'] = row.count;
-          } 
-          // This block ensures the count for "My Requests" is correctly created
-          else if (row.link_url === '/dashboard/my-requests') {
-              notificationCounts['my_requests'] = row.count;
-          }
+  // The logic inside the loop is now fully type-safe, no changes needed
+  for (const row of notifResults) {
+      if (row.link_url === '/dashboard/requests/review') {
+          notificationCounts['review_requests'] = row.count;
+      } 
+      else if (row.link_url === '/dashboard/my-requests') {
+          notificationCounts['my_requests'] = row.count;
       }
   }
   
@@ -60,7 +72,8 @@ async function getLayoutData() {
       fullName: dbUser.full_name,
       email: dbUser.email,
       profile_image_url: dbUser.profile_image_url,
-      permissions: permissions.map((p: any) => p.name)
+      // FIXED: The map function is now clean. `p.name` is a string.
+      permissions: permissions.map(p => p.name)
   };
 
   return { 

@@ -44,12 +44,18 @@ interface Role extends RowDataPacket {
     name: string;
 }
 
+// Define an interface for the FormInput's props
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+}
 // --- Data ---
 const departments = ['NetSecOps', 'Software', 'Finance', 'Front Desk', 'HR', 'Supervisor', 'Technical'];
 const titles = ['Mr', 'Ms', 'Mrs', 'Dr'];
 
 // --- Reusable UI Components ---
-const FormInput = ({ id, label, icon: Icon, ...props }: any) => (
+const FormInput = ({ id, label, icon: Icon, ...props }: FormInputProps) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">{label}</label>
         <div className="mt-1 relative">
@@ -104,8 +110,13 @@ const passwordRules = validatePasswordRules(password);
             if (!response.ok) throw new Error(result.message || 'Failed to update profile.');
             router.push('/dashboard/staff');
             router.refresh();
-        } catch (err: any) {
-            setError(err.message);
+        }  catch (err) { // Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }

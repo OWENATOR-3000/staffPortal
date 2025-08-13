@@ -1,13 +1,12 @@
 // app/dashboard/page.tsx
 
-import TimeWidget from '@/components/dashboard/TimeWidget';
+
 import CalendarWidget from '@/components/dashboard/CalendarWidget';
 import ProfileWelcome from '@/components/dashboard/ProfileWelcome';
 import { getSessionUser } from '@/lib/session';
 import db from '@/lib/db';
 import { redirect } from 'next/navigation';
 import { RowDataPacket } from 'mysql2';
-import { format } from 'date-fns';
 import TimeWidgetPlain from '@/components/dashboard/TimeWidget';
 import ChatWidget from '@/components/dashboard/ChatWidget';
 

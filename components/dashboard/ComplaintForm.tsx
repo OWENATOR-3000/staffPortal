@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 
 const complaintTypes = ['Harassment', 'Unfair Treatment', 'Workplace Safety', 'Other'];
 
-export default function ComplaintForm({ user }: { user: any }) {
+// FIX 1: Define a specific interface for the user prop
+interface User {
+    full_name: string;
+    department: string;
+    primary_phone_number: string;
+}
+
+export default function ComplaintForm({ user }: { user: User | null }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [selectedNature, setSelectedNature] = useState('');
@@ -26,8 +33,13 @@ export default function ComplaintForm({ user }: { user: any }) {
             alert('Your complaint has been submitted successfully.');
             router.push('/dashboard');
             router.refresh();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) { // FIX 2: Removed ': any'
+            // Safely get the error message using a type guard
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -38,12 +50,14 @@ export default function ComplaintForm({ user }: { user: any }) {
             <div>
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Employee Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* The optional chaining (?.) is already correctly handling the 'null' case */}
                     <div><label className="block text-sm text-gray-900">Full Name</label><input type="text" readOnly value={user?.full_name || ''} className="mt-1 block w-full bg-gray-100 rounded-md text-gray-900"/></div>
                     <div><label className="block text-sm text-gray-900">Department</label><input type="text" readOnly value={user?.department || ''} className="mt-1 block w-full bg-gray-100 rounded-md text-gray-900"/></div>
                     <div><label className="block text-sm text-gray-900">Contact Number</label><input type="text" readOnly value={user?.primary_phone_number || ''} className="mt-1 block w-full bg-gray-100 rounded-md text-gray-900"/></div>
                 </div>
             </div>
 
+            {/* ... rest of your JSX remains the same ... */}
             <div>
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Complaint Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
